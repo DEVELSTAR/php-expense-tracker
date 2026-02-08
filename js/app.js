@@ -16,7 +16,7 @@ class ExpenseTracker {
         this.expenseForm = document.getElementById('expenseForm');
         this.expenseDateInput = document.getElementById('expenseDate');
         this.totalAmountInput = document.getElementById('totalAmount');
-        this.categorySelect = document.getElementById('category');
+        this.categoryRadios = document.querySelectorAll('input[name="category"]');
         
         // Filter elements
         this.categoryFilter = document.getElementById('categoryFilter');
@@ -89,10 +89,17 @@ class ExpenseTracker {
     }
 
     async addExpense() {
+        const selectedCategory = document.querySelector('input[name="category"]:checked');
+        
+        if (!selectedCategory) {
+            this.showError('Please select a category');
+            return;
+        }
+
         const expenseData = {
             expense_date: this.expenseDateInput.value,
             total: parseFloat(this.totalAmountInput.value),
-            category: this.categorySelect.value
+            category: selectedCategory.value
         };
 
         try {
@@ -204,7 +211,7 @@ class ExpenseTracker {
 
         row.innerHTML = `
             <td>${formattedDate}</td>
-            <td>$${formattedAmount}</td>
+            <td>₹${formattedAmount}</td>
             <td><span class="category-badge category-${expense.category.toLowerCase()}">${expense.category}</span></td>
             <td>
                 <button class="btn btn-danger" onclick="expenseTracker.deleteExpense(${expense.id})">

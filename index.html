@@ -29,16 +29,33 @@
                     </div>
                     
                     <div class="form-group">
-                        <label for="category">Category:</label>
-                        <select id="category" required>
-                            <option value="">Select Category</option>
-                            <option value="Both">Both</option>
-                            <option value="Domestic">Domestic</option>
-                            <option value="Akib">Akib</option>
-                            <option value="Saniya">Saniya</option>
-                            <option value="Neha">Neha</option>
-                            <option value="Family">Family</option>
-                        </select>
+                        <label>Category:</label>
+                        <div class="radio-group">
+                            <label class="radio-label">
+                                <input type="radio" name="category" value="Both">
+                                <span>Both</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="category" value="Domestic" checked>
+                                <span>Domestic</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="category" value="Akib">
+                                <span>Akib</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="category" value="Saniya">
+                                <span>Saniya</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="category" value="Neha">
+                                <span>Neha</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="category" value="Family">
+                                <span>Family</span>
+                            </label>
+                        </div>
                     </div>
                     
                     <button type="submit" class="btn btn-primary">Add Expense</button>
@@ -61,7 +78,7 @@
                 </div>
                 
                 <div class="total-display">
-                    <strong>Total Amount: $<span id="totalAmount">0.00</span></strong>
+                    <strong>Total Amount: ₹<span id="totalAmount">0.00</span></strong>
                 </div>
             </section>
 
