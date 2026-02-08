@@ -24,8 +24,8 @@ class ExpenseTracker {
         this.pillButtons = document.querySelectorAll('.pill-btn');
         
         // Filter state
-        this.selectedCategory = '';
-        this.selectedDate = null;
+        this.filterCategory = '';
+        this.filterDate = null;
         
         // Display elements
         this.totalAmountDisplay = document.getElementById('totalAmount');
@@ -43,16 +43,23 @@ class ExpenseTracker {
             this.addExpense();
         });
 
-        // Category pill button clicks
-        this.pillButtons.forEach(button => {
+        // Category button clicks (form section)
+        this.categoryButtons.forEach(button => {
             button.addEventListener('click', () => {
                 this.selectCategory(button);
             });
         });
 
+        // Category pill button clicks (filter section)
+        this.pillButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                this.selectFilterCategory(button);
+            });
+        });
+
         // Date filter change
         this.dateFilterInput.addEventListener('change', () => {
-            this.selectedDate = this.dateFilterInput.value;
+            this.filterDate = this.dateFilterInput.value;
             this.applyFilters();
         });
 
@@ -66,13 +73,19 @@ class ExpenseTracker {
         this.expenseDateInput.value = today;
         
         // Set default filter state
-        this.selectedCategory = '';
-        this.selectedDate = null;
+        this.filterCategory = '';
+        this.filterDate = null;
         
-        // Select "All" pill button by default
-        const allButton = document.querySelector('.pill-btn[data-category=""]');
-        if (allButton) {
-            allButton.setAttribute('data-selected', '');
+        // Select "All" pill button by default (filter section)
+        const allFilterButton = document.querySelector('.pill-btn[data-category=""]');
+        if (allFilterButton) {
+            allFilterButton.setAttribute('data-selected', '');
+        }
+        
+        // Select "Domestic" category button by default (form section)
+        const domesticButton = document.querySelector('.category-btn[data-category="Domestic"]');
+        if (domesticButton) {
+            domesticButton.setAttribute('data-selected', '');
         }
     }
 
@@ -121,7 +134,20 @@ class ExpenseTracker {
     }
 
     selectCategory(selectedButton) {
-        // Remove selected from all buttons
+        // Remove selected from all category buttons (form section)
+        this.categoryButtons.forEach(button => {
+            button.removeAttribute('data-selected');
+        });
+        
+        // Add selected to clicked button
+        selectedButton.setAttribute('data-selected', '');
+        
+        // Update hidden input value
+        this.selectedCategoryInput.value = selectedButton.getAttribute('data-category');
+    }
+
+    selectFilterCategory(selectedButton) {
+        // Remove selected from all filter buttons
         this.pillButtons.forEach(button => {
             button.removeAttribute('data-selected');
         });
@@ -129,8 +155,8 @@ class ExpenseTracker {
         // Add selected to clicked button
         selectedButton.setAttribute('data-selected', '');
         
-        // Update selected category state
-        this.selectedCategory = selectedButton.getAttribute('data-category');
+        // Update selected category state for filtering
+        this.filterCategory = selectedButton.getAttribute('data-category');
         
         // Apply filters immediately
         this.applyFilters();
@@ -140,12 +166,12 @@ class ExpenseTracker {
         // Build URL with filters
         const params = new URLSearchParams();
         
-        if (this.selectedCategory && this.selectedCategory !== '') {
-            params.append('category', this.selectedCategory);
+        if (this.filterCategory && this.filterCategory !== '') {
+            params.append('category', this.filterCategory);
         }
         
-        if (this.selectedDate && this.selectedDate !== '') {
-            params.append('date', this.selectedDate);
+        if (this.filterDate && this.filterDate !== '') {
+            params.append('date', this.filterDate);
         }
 
         const url = params.toString() ? `${this.apiUrl}/get_expenses.php?${params.toString()}` : `${this.apiUrl}/get_expenses.php`;
