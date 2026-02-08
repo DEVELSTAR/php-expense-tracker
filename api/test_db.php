@@ -2,7 +2,7 @@
 $conn = new mysqli(
   "localhost",
   "akibwork_expuser",
-  "Saniya1@asd",
+  "Saniya1@123",
   "akibwork_expense"
 );
 
