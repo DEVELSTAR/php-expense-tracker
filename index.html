@@ -48,42 +48,20 @@
             <!-- Filter and Total Section -->
             <section class="filter-section">
                 <div class="filter-group">
+                    <label>Filter by Date:</label>
+                    <input type="date" id="dateFilter" class="date-filter">
+                </div>
+                
+                <div class="filter-group">
                     <label>Filter by Category:</label>
-                    <div class="radio-group">
-                        <div class="radio-row">
-                            <label class="radio-label button-radio">
-                                <input type="radio" name="categoryFilter" value="" checked>
-                                <span>All Categories</span>
-                            </label>
-                            <label class="radio-label button-radio">
-                                <input type="radio" name="categoryFilter" value="Both">
-                                <span>Both</span>
-                            </label>
-                            <label class="radio-label button-radio">
-                                <input type="radio" name="categoryFilter" value="Domestic">
-                                <span>Domestic</span>
-                            </label>
-                        </div>
-                        <div class="radio-row">
-                            <label class="radio-label button-radio">
-                                <input type="radio" name="categoryFilter" value="Akib">
-                                <span>Akib</span>
-                            </label>
-                            <label class="radio-label button-radio">
-                                <input type="radio" name="categoryFilter" value="Saniya">
-                                <span>Saniya</span>
-                            </label>
-                            <label class="radio-label button-radio">
-                                <input type="radio" name="categoryFilter" value="Neha">
-                                <span>Neha</span>
-                            </label>
-                        </div>
-                        <div class="radio-row">
-                            <label class="radio-label button-radio">
-                                <input type="radio" name="categoryFilter" value="Family">
-                                <span>Family</span>
-                            </label>
-                        </div>
+                    <div class="button-group">
+                        <button type="button" class="filter-btn" data-category="">All</button>
+                        <button type="button" class="filter-btn" data-category="Both">Both</button>
+                        <button type="button" class="filter-btn" data-category="Domestic">Domestic</button>
+                        <button type="button" class="filter-btn" data-category="Akib">Akib</button>
+                        <button type="button" class="filter-btn" data-category="Saniya">Saniya</button>
+                        <button type="button" class="filter-btn" data-category="Neha">Neha</button>
+                        <button type="button" class="filter-btn" data-category="Family">Family</button>
                     </div>
                 </div>
                 

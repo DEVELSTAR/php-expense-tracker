@@ -20,7 +20,8 @@ class ExpenseTracker {
         this.selectedCategoryInput = document.getElementById('selectedCategory');
         
         // Filter elements
-        this.categoryFilterRadios = document.querySelectorAll('input[name="categoryFilter"]');
+        this.dateFilterInput = document.getElementById('dateFilter');
+        this.filterButtons = document.querySelectorAll('.filter-btn');
         
         // Display elements
         this.totalAmountDisplay = document.getElementById('totalAmount');
@@ -38,11 +39,16 @@ class ExpenseTracker {
             this.addExpense();
         });
 
-        // Category button clicks
-        this.categoryButtons.forEach(button => {
+        // Category filter button clicks
+        this.filterButtons.forEach(button => {
             button.addEventListener('click', () => {
-                this.selectCategory(button);
+                this.selectFilter(button);
             });
+        });
+
+        // Date filter change
+        this.dateFilterInput.addEventListener('change', () => {
+            this.applyFilters();
         });
 
         // Hide messages when clicking on them
@@ -61,9 +67,18 @@ class ExpenseTracker {
             this.hideMessage('error');
             this.hideMessage('success');
 
-            const url = this.currentFilter 
-                ? `${this.apiUrl}/get_expenses.php?category=${encodeURIComponent(this.currentFilter)}`
-                : `${this.apiUrl}/get_expenses.php`;
+            // Build URL with filters
+            const params = new URLSearchParams();
+            
+            if (this.currentFilter && this.currentFilter !== '') {
+                params.append('category', this.currentFilter);
+            }
+            
+            if (this.currentDate && this.currentDate !== '') {
+                params.append('date', this.currentDate);
+            }
+
+            const url = params.toString() ? `${this.apiUrl}/get_expenses.php?${params.toString()}` : `${this.apiUrl}/get_expenses.php`;
 
             const response = await fetch(url);
             const data = await response.json();
@@ -90,17 +105,26 @@ class ExpenseTracker {
         }
     }
 
-    selectCategory(selectedButton) {
+    selectFilter(selectedButton) {
         // Remove selected from all buttons
-        this.categoryButtons.forEach(button => {
+        this.filterButtons.forEach(button => {
             button.removeAttribute('data-selected');
         });
         
         // Add selected to clicked button
         selectedButton.setAttribute('data-selected', '');
+    }
+
+    applyFilters() {
+        const selectedCategory = document.querySelector('.filter-btn[data-selected]');
+        const categoryValue = selectedCategory ? selectedCategory.getAttribute('data-category') : '';
+        const dateValue = this.dateFilterInput.value;
         
-        // Update hidden input value
-        this.selectedCategoryInput.value = selectedButton.getAttribute('data-category');
+        // Update current filter for API call
+        this.currentFilter = categoryValue;
+        this.currentDate = dateValue;
+        
+        this.loadExpenses();
     }
 
     async addExpense() {
