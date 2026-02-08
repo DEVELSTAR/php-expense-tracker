@@ -30,35 +30,14 @@
                     
                     <div class="form-group">
                         <label>Category:</label>
-                        <div class="radio-group">
-                            <div class="radio-row">
-                                <label class="radio-label button-radio">
-                                    <input type="radio" name="category" value="Both">
-                                    <span>Both</span>
-                                </label>
-                                <label class="radio-label button-radio">
-                                    <input type="radio" name="category" value="Domestic" checked>
-                                    <span>Domestic</span>
-                                </label>
-                                <label class="radio-label button-radio">
-                                    <input type="radio" name="category" value="Akib">
-                                    <span>Akib</span>
-                                </label>
-                            </div>
-                            <div class="radio-row">
-                                <label class="radio-label button-radio">
-                                    <input type="radio" name="category" value="Saniya">
-                                    <span>Saniya</span>
-                                </label>
-                                <label class="radio-label button-radio">
-                                    <input type="radio" name="category" value="Neha">
-                                    <span>Neha</span>
-                                </label>
-                                <label class="radio-label button-radio">
-                                    <input type="radio" name="category" value="Family">
-                                    <span>Family</span>
-                                </label>
-                            </div>
+                        <div class="button-group">
+                            <button type="button" class="category-btn" data-category="Both">Both</button>
+                            <button type="button" class="category-btn" data-category="Domestic" data-selected>Domestic</button>
+                            <button type="button" class="category-btn" data-category="Akib">Akib</button>
+                            <button type="button" class="category-btn" data-category="Saniya">Saniya</button>
+                            <button type="button" class="category-btn" data-category="Neha">Neha</button>
+                            <button type="button" class="category-btn" data-category="Family">Family</button>
+                            <input type="hidden" id="selectedCategory" name="category" value="Domestic">
                         </div>
                     </div>
                     

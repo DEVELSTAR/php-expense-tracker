@@ -16,7 +16,8 @@ class ExpenseTracker {
         this.expenseForm = document.getElementById('expenseForm');
         this.expenseDateInput = document.getElementById('expenseDate');
         this.totalAmountInput = document.getElementById('totalAmount');
-        this.categoryRadios = document.querySelectorAll('input[name="category"]');
+        this.categoryButtons = document.querySelectorAll('.category-btn');
+        this.selectedCategoryInput = document.getElementById('selectedCategory');
         
         // Filter elements
         this.categoryFilterRadios = document.querySelectorAll('input[name="categoryFilter"]');
@@ -37,12 +38,10 @@ class ExpenseTracker {
             this.addExpense();
         });
 
-        // Category filter change
-        this.categoryFilterRadios.forEach(radio => {
-            radio.addEventListener('change', () => {
-                const selectedRadio = document.querySelector('input[name="categoryFilter"]:checked');
-                this.currentFilter = selectedRadio.value;
-                this.loadExpenses();
+        // Category button clicks
+        this.categoryButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                this.selectCategory(button);
             });
         });
 
@@ -91,8 +90,21 @@ class ExpenseTracker {
         }
     }
 
+    selectCategory(selectedButton) {
+        // Remove selected from all buttons
+        this.categoryButtons.forEach(button => {
+            button.removeAttribute('data-selected');
+        });
+        
+        // Add selected to clicked button
+        selectedButton.setAttribute('data-selected', '');
+        
+        // Update hidden input value
+        this.selectedCategoryInput.value = selectedButton.getAttribute('data-category');
+    }
+
     async addExpense() {
-        const selectedCategory = document.querySelector('input[name="category"]:checked');
+        const selectedCategory = this.selectedCategoryInput.value;
         
         if (!selectedCategory) {
             this.showError('Please select a category');
@@ -102,7 +114,7 @@ class ExpenseTracker {
         const expenseData = {
             expense_date: this.expenseDateInput.value,
             total: parseFloat(this.totalAmountInput.value),
-            category: selectedCategory.value
+            category: selectedCategory
         };
 
         try {

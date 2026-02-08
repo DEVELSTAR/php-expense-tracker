@@ -308,60 +308,69 @@ tbody tr:hover {
     border-color: #27ae60;
 }
 
-/* Radio button styles */
-.radio-group {
-    display: flex;
-    flex-direction: column;
+/* Custom Category Buttons */
+.button-group {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
     margin-top: 5px;
 }
 
-.radio-row {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-start;
-}
-
-.radio-label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    font-weight: normal;
-    margin-bottom: 0;
-}
-
-.radio-label input[type="radio"] {
-    display: none; /* Hide actual radio buttons */
-}
-
-.radio-label span {
-    display: inline-block;
-    padding: 10px 20px;
+.category-btn {
+    padding: 12px 20px;
     border: 2px solid #6a0dad;
     border-radius: 8px;
-    font-size: 14px;
-    color: #6a0dad;
     background-color: white;
-    transition: all 0.3s ease;
-    min-width: 90px;
-    text-align: center;
+    color: #6a0dad;
+    font-size: 14px;
     font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-height: 44px;
     box-shadow: 0 2px 6px rgba(106, 13, 173, 0.1);
 }
 
-.radio-label:hover span {
+.category-btn:hover {
     border-color: #8b5cf6;
     color: #8b5cf6;
     background-color: #f3f4f6;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
 }
 
-.radio-label input[type="radio"]:checked + span {
+.category-btn[data-selected] {
     border-color: #6a0dad;
     color: white;
     background-color: #6a0dad;
     font-weight: 600;
     box-shadow: 0 4px 12px rgba(106, 13, 173, 0.4);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .button-group {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .category-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+        min-height: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .button-group {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+    
+    .category-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+        min-height: 36px;
+    }
 }
