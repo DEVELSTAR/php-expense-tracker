@@ -15,7 +15,7 @@ class ExpenseTracker {
         // Form elements
         this.expenseForm = document.getElementById('expenseForm');
         this.expenseDateInput = document.getElementById('expenseDate');
-        this.totalAmountInput = document.getElementById('totalAmount');
+        this.totalAmountInput = document.getElementById('expenseAmount');
         this.categoryButtons = document.querySelectorAll('.category-btn');
         this.selectedCategoryInput = document.getElementById('selectedCategory');
         
