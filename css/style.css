@@ -330,8 +330,9 @@ tbody tr:hover {
     margin-bottom: 0;
 }
 
-.radio-label input[type="radio"] {
-    display: none; /* Hide the actual radio button */
+.radio-label input[type="radio"],
+.radio-label input[type="checkbox"] {
+    display: none; /* Hide actual radio/checkbox buttons */
 }
 
 .radio-label span {
@@ -353,7 +354,8 @@ tbody tr:hover {
     background-color: #f8f9ff;
 }
 
-.radio-label input[type="radio"]:checked + span {
+.radio-label input[type="radio"]:checked + span,
+.radio-label input[type="checkbox"]:checked + span {
     border-color: #667eea;
     color: white;
     background-color: #667eea;

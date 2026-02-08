@@ -9,13 +9,15 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 try {
+    // Get category filter if exists
+    $category = isset($_GET['category']) ? $_GET['category'] : '';
+    
     // Build query based on category filter
     $sql = "SELECT * FROM expenses";
     $params = [];
     
     // Check if category filter is provided
-    if (isset($_GET['category']) && $_GET['category'] !== '') {
-        $category = $_GET['category'];
+    if ($category !== '') {
         $sql .= " WHERE category = ?";
         $params[] = $category;
     }
@@ -31,7 +33,7 @@ try {
     $total_sql = "SELECT SUM(total) as total_sum FROM expenses";
     $total_params = [];
     
-    if (isset($_GET['category']) && $_GET['category'] !== '') {
+    if ($category !== '') {
         $total_sql .= " WHERE category = ?";
         $total_params[] = $category;
     }
