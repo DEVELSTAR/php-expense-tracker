@@ -308,21 +308,20 @@ tbody tr:hover {
     border-color: #27ae60;
 }
 
-/* Custom Category Buttons */
-.button-group {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+/* Pill-style Filter Buttons */
+.pill-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
     margin-top: 5px;
 }
 
-.category-btn,
-.filter-btn {
-    padding: 10px 18px;
-    border: 2px solid #ccc;
-    border-radius: 8px;
-    background-color: white;
-    color: #333;
+.pill-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px;
+    background-color: #f1f3f5;
+    color: #495057;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -330,25 +329,22 @@ tbody tr:hover {
     text-align: center;
     min-height: 40px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
 }
 
-.category-btn:hover,
-.filter-btn:hover {
-    border-color: #4F46E5;
-    color: #4F46E5;
-    background-color: #f8f9ff;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
+.pill-btn:hover {
+    background-color: #e9ecef;
+    color: #343a40;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
-.category-btn[data-selected],
-.filter-btn[data-selected] {
-    border: none;
+.pill-btn[data-selected] {
+    background: linear-gradient(135deg, #4F46E5 0%, #10B981 100%);
     color: white;
-    background-color: #4F46E5;
     font-weight: 600;
     box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }
 
 /* Date Filter */
@@ -370,29 +366,25 @@ tbody tr:hover {
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-    .button-group {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+    .pill-group {
+        gap: 6px;
     }
     
-    .category-btn,
-    .filter-btn {
+    .pill-btn {
         padding: 8px 16px;
         font-size: 13px;
-        min-height: 40px;
+        min-height: 36px;
     }
 }
 
 @media (max-width: 480px) {
-    .button-group {
-        grid-template-columns: 1fr;
-        gap: 6px;
+    .pill-group {
+        gap: 4px;
     }
     
-    .category-btn,
-    .filter-btn {
-        padding: 8px 12px;
+    .pill-btn {
+        padding: 6px 12px;
         font-size: 12px;
-        min-height: 40px;
+        min-height: 32px;
     }
 }

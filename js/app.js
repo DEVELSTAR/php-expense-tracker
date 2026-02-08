@@ -21,7 +21,11 @@ class ExpenseTracker {
         
         // Filter elements
         this.dateFilterInput = document.getElementById('dateFilter');
-        this.filterButtons = document.querySelectorAll('.filter-btn');
+        this.pillButtons = document.querySelectorAll('.pill-btn');
+        
+        // Filter state
+        this.selectedCategory = '';
+        this.selectedDate = null;
         
         // Display elements
         this.totalAmountDisplay = document.getElementById('totalAmount');
@@ -39,15 +43,16 @@ class ExpenseTracker {
             this.addExpense();
         });
 
-        // Category filter button clicks
-        this.filterButtons.forEach(button => {
+        // Category pill button clicks
+        this.pillButtons.forEach(button => {
             button.addEventListener('click', () => {
-                this.selectFilter(button);
+                this.selectCategory(button);
             });
         });
 
         // Date filter change
         this.dateFilterInput.addEventListener('change', () => {
+            this.selectedDate = this.dateFilterInput.value;
             this.applyFilters();
         });
 
@@ -59,6 +64,16 @@ class ExpenseTracker {
     setDefaultDate() {
         const today = new Date().toISOString().split('T')[0];
         this.expenseDateInput.value = today;
+        
+        // Set default filter state
+        this.selectedCategory = '';
+        this.selectedDate = null;
+        
+        // Select "All" pill button by default
+        const allButton = document.querySelector('.pill-btn[data-category=""]');
+        if (allButton) {
+            allButton.setAttribute('data-selected', '');
+        }
     }
 
     async loadExpenses() {
@@ -105,26 +120,69 @@ class ExpenseTracker {
         }
     }
 
-    selectFilter(selectedButton) {
+    selectCategory(selectedButton) {
         // Remove selected from all buttons
-        this.filterButtons.forEach(button => {
+        this.pillButtons.forEach(button => {
             button.removeAttribute('data-selected');
         });
         
         // Add selected to clicked button
         selectedButton.setAttribute('data-selected', '');
+        
+        // Update selected category state
+        this.selectedCategory = selectedButton.getAttribute('data-category');
+        
+        // Apply filters immediately
+        this.applyFilters();
     }
 
     applyFilters() {
-        const selectedCategory = document.querySelector('.filter-btn[data-selected]');
-        const categoryValue = selectedCategory ? selectedCategory.getAttribute('data-category') : '';
-        const dateValue = this.dateFilterInput.value;
+        // Build URL with filters
+        const params = new URLSearchParams();
         
-        // Update current filter for API call
-        this.currentFilter = categoryValue;
-        this.currentDate = dateValue;
+        if (this.selectedCategory && this.selectedCategory !== '') {
+            params.append('category', this.selectedCategory);
+        }
         
-        this.loadExpenses();
+        if (this.selectedDate && this.selectedDate !== '') {
+            params.append('date', this.selectedDate);
+        }
+
+        const url = params.toString() ? `${this.apiUrl}/get_expenses.php?${params.toString()}` : `${this.apiUrl}/get_expenses.php`;
+        
+        // Load filtered expenses immediately
+        this.loadExpensesFromUrl(url);
+    }
+
+    async loadExpensesFromUrl(url) {
+        try {
+            this.showLoading();
+            this.hideMessage('error');
+            this.hideMessage('success');
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to load expenses');
+            }
+
+            if (data.success) {
+                this.expenses = data.expenses;
+                this.updateTotalDisplay(data.total_sum);
+                this.renderExpenses();
+            } else {
+                throw new Error(data.error || 'Unknown error occurred');
+            }
+
+        } catch (error) {
+            this.showError(`Error loading expenses: ${error.message}`);
+            this.expenses = [];
+            this.updateTotalDisplay(0);
+            this.renderExpenses();
+        } finally {
+            this.hideLoading();
+        }
     }
 
     async addExpense() {
