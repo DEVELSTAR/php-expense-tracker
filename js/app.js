@@ -16,7 +16,7 @@ class ExpenseTracker {
         this.expenseForm = document.getElementById('expenseForm');
         this.expenseDateInput = document.getElementById('expenseDate');
         this.totalAmountInput = document.getElementById('totalAmount');
-        this.categoryCheckboxes = document.querySelectorAll('input[name="category"]');
+        this.categoryRadios = document.querySelectorAll('input[name="category"]');
         
         // Filter elements
         this.categoryFilterRadios = document.querySelectorAll('input[name="categoryFilter"]');
@@ -92,22 +92,17 @@ class ExpenseTracker {
     }
 
     async addExpense() {
-        const selectedCategories = [];
-        this.categoryCheckboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-                selectedCategories.push(checkbox.value);
-            }
-        });
+        const selectedCategory = document.querySelector('input[name="category"]:checked');
         
-        if (selectedCategories.length === 0) {
-            this.showError('Please select at least one category');
+        if (!selectedCategory) {
+            this.showError('Please select a category');
             return;
         }
 
         const expenseData = {
             expense_date: this.expenseDateInput.value,
             total: parseFloat(this.totalAmountInput.value),
-            category: selectedCategories.join(', ') // Join multiple categories with comma
+            category: selectedCategory.value
         };
 
         try {
