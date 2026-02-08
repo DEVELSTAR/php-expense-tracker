@@ -347,6 +347,45 @@ tbody tr:hover {
     transform: translateY(-1px);
 }
 
+/* Category Buttons - Same pill-style as filter */
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 5px;
+}
+
+.category-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px;
+    background-color: #f1f3f5;
+    color: #495057;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    min-height: 40px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+}
+
+.category-btn:hover {
+    background-color: #e9ecef;
+    color: #343a40;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.category-btn[data-selected] {
+    background: linear-gradient(135deg, #4F46E5 0%, #10B981 100%);
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
+    transform: translateY(-1px);
+}
+
 /* Date Filter */
 .date-filter {
     width: 100%;
