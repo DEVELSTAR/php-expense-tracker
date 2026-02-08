@@ -16,6 +16,7 @@ class ExpenseTracker {
         this.expenseForm = document.getElementById('expenseForm');
         this.expenseDateInput = document.getElementById('expenseDate');
         this.totalAmountInput = document.getElementById('expenseAmount');
+        this.messageInput = document.getElementById('expenseMessage');
         this.categoryButtons = document.querySelectorAll('.category-btn');
         this.selectedCategoryInput = document.getElementById('selectedCategory');
         
@@ -222,7 +223,8 @@ class ExpenseTracker {
         const expenseData = {
             expense_date: this.expenseDateInput.value,
             total: parseFloat(this.totalAmountInput.value),
-            category: selectedCategory
+            category: selectedCategory,
+            message: this.messageInput.value.trim()
         };
 
         try {
@@ -336,6 +338,7 @@ class ExpenseTracker {
             <td>${formattedDate}</td>
             <td>₹${formattedAmount}</td>
             <td><span class="category-badge category-${expense.category.toLowerCase()}">${expense.category}</span></td>
+            <td>${expense.message || '-'}</td>
             <td>
                 <button class="btn btn-danger" onclick="expenseTracker.deleteExpense(${expense.id})">
                     Delete

@@ -22,6 +22,7 @@ if (!isset($data['expense_date']) || !isset($data['total']) || !isset($data['cat
 $expense_date = $data['expense_date'];
 $total = floatval($data['total']);
 $category = $data['category'];
+$message = isset($data['message']) ? trim($data['message']) : null;
 
 // Validate date format
 if (!DateTime::createFromFormat('Y-m-d', $expense_date)) {
@@ -47,8 +48,8 @@ if (!in_array($category, $allowed_categories)) {
 
 try {
     // Insert expense
-    $stmt = $conn->prepare("INSERT INTO expenses (expense_date, total, category) VALUES (?, ?, ?)");
-    $stmt->execute([$expense_date, $total, $category]);
+    $stmt = $conn->prepare("INSERT INTO expenses (expense_date, total, category, message) VALUES (?, ?, ?, ?)");
+    $stmt->execute([$expense_date, $total, $category, $message]);
     
     // Get the inserted record
     $id = $conn->lastInsertId();
