@@ -1,5 +1,5 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/akibwork/public_html
+    - export DEPLOYPATH=/home/akibwork/public_html/expense
     - /bin/cp -R * $DEPLOYPATH
