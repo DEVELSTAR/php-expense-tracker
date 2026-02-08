@@ -69,16 +69,43 @@
             <!-- Filter and Total Section -->
             <section class="filter-section">
                 <div class="filter-group">
-                    <label for="categoryFilter">Filter by Category:</label>
-                    <select id="categoryFilter">
-                        <option value="">All Categories</option>
-                        <option value="Both">Both</option>
-                        <option value="Domestic">Domestic</option>
-                        <option value="Akib">Akib</option>
-                        <option value="Saniya">Saniya</option>
-                        <option value="Neha">Neha</option>
-                        <option value="Family">Family</option>
-                    </select>
+                    <label>Filter by Category:</label>
+                    <div class="radio-group">
+                        <div class="radio-row">
+                            <label class="radio-label button-radio">
+                                <input type="radio" name="categoryFilter" value="" checked>
+                                <span>All Categories</span>
+                            </label>
+                            <label class="radio-label button-radio">
+                                <input type="radio" name="categoryFilter" value="Both">
+                                <span>Both</span>
+                            </label>
+                            <label class="radio-label button-radio">
+                                <input type="radio" name="categoryFilter" value="Domestic">
+                                <span>Domestic</span>
+                            </label>
+                        </div>
+                        <div class="radio-row">
+                            <label class="radio-label button-radio">
+                                <input type="radio" name="categoryFilter" value="Akib">
+                                <span>Akib</span>
+                            </label>
+                            <label class="radio-label button-radio">
+                                <input type="radio" name="categoryFilter" value="Saniya">
+                                <span>Saniya</span>
+                            </label>
+                            <label class="radio-label button-radio">
+                                <input type="radio" name="categoryFilter" value="Neha">
+                                <span>Neha</span>
+                            </label>
+                        </div>
+                        <div class="radio-row">
+                            <label class="radio-label button-radio">
+                                <input type="radio" name="categoryFilter" value="Family">
+                                <span>Family</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="total-display">

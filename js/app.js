@@ -19,7 +19,7 @@ class ExpenseTracker {
         this.categoryRadios = document.querySelectorAll('input[name="category"]');
         
         // Filter elements
-        this.categoryFilter = document.getElementById('categoryFilter');
+        this.categoryFilterRadios = document.querySelectorAll('input[name="categoryFilter"]');
         
         // Display elements
         this.totalAmountDisplay = document.getElementById('totalAmount');
@@ -38,9 +38,12 @@ class ExpenseTracker {
         });
 
         // Category filter change
-        this.categoryFilter.addEventListener('change', () => {
-            this.currentFilter = this.categoryFilter.value;
-            this.loadExpenses();
+        this.categoryFilterRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                const selectedRadio = document.querySelector('input[name="categoryFilter"]:checked');
+                this.currentFilter = selectedRadio.value;
+                this.loadExpenses();
+            });
         });
 
         // Hide messages when clicking on them
