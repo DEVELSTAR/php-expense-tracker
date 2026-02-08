@@ -12,14 +12,29 @@ try {
     // Get category filter if exists
     $category = isset($_GET['category']) ? $_GET['category'] : '';
     
-    // Build query based on category filter
+    // Get date filter if exists
+    $date = isset($_GET['date']) ? $_GET['date'] : '';
+    
+    // Build query based on filters
     $sql = "SELECT * FROM expenses";
     $params = [];
+    $where_clauses = [];
     
     // Check if category filter is provided
     if ($category !== '') {
-        $sql .= " WHERE category = ?";
+        $where_clauses[] = "category = ?";
         $params[] = $category;
+    }
+    
+    // Check if date filter is provided
+    if ($date !== '') {
+        $where_clauses[] = "expense_date = ?";
+        $params[] = $date;
+    }
+    
+    // Add WHERE clause if any filters exist
+    if (!empty($where_clauses)) {
+        $sql .= " WHERE " . implode(' AND ', $where_clauses);
     }
     
     // Order by date descending (newest first)
@@ -29,13 +44,23 @@ try {
     $stmt->execute($params);
     $expenses = $stmt->fetchAll();
     
-    // Calculate total sum
+    // Calculate total sum with same filters
     $total_sql = "SELECT SUM(total) as total_sum FROM expenses";
     $total_params = [];
+    $total_where_clauses = [];
     
     if ($category !== '') {
-        $total_sql .= " WHERE category = ?";
+        $total_where_clauses[] = "category = ?";
         $total_params[] = $category;
+    }
+    
+    if ($date !== '') {
+        $total_where_clauses[] = "expense_date = ?";
+        $total_params[] = $date;
+    }
+    
+    if (!empty($total_where_clauses)) {
+        $total_sql .= " WHERE " . implode(' AND ', $total_where_clauses);
     }
     
     $total_stmt = $conn->prepare($total_sql);
