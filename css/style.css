@@ -311,9 +311,15 @@ tbody tr:hover {
 /* Radio button styles */
 .radio-group {
     display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
+    flex-direction: column;
+    gap: 10px;
     margin-top: 5px;
+}
+
+.radio-row {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-start;
 }
 
 .radio-label {
@@ -325,21 +331,32 @@ tbody tr:hover {
 }
 
 .radio-label input[type="radio"] {
-    width: auto;
-    margin-right: 8px;
-    margin-bottom: 0;
+    display: none; /* Hide the actual radio button */
 }
 
 .radio-label span {
+    display: inline-block;
+    padding: 8px 16px;
+    border: 2px solid #ddd;
+    border-radius: 5px;
     font-size: 14px;
     color: #555;
+    background-color: white;
+    transition: all 0.3s ease;
+    min-width: 80px;
+    text-align: center;
 }
 
 .radio-label:hover span {
+    border-color: #667eea;
     color: #667eea;
+    background-color: #f8f9ff;
 }
 
 .radio-label input[type="radio"]:checked + span {
-    color: #667eea;
+    border-color: #667eea;
+    color: white;
+    background-color: #667eea;
     font-weight: 600;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
