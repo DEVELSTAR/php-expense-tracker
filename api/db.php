@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $host = "localhost";
 $dbname = "akibwork_expense";      // your DB name
 $username = "akibwork_expuser";    // your DB user
-$password = "Test1@123";    // your real password
+$password = "Saniya1@123";    // your real password
 
 try {
     $conn = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", 
