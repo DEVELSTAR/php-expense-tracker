@@ -114,7 +114,7 @@ class ExpenseTracker {
                 params.append('date', this.filterDate);
             }
 
-            const url = params.toString() ? `${this.apiUrl}/get_expenses.php?${params.toString()}` : `${this.apiUrl}/get_expenses.php`;
+            const url = params.toString() ? `/api/get_expenses.php?${params.toString()}` : `/api/get_expenses.php`;
 
             const response = await fetch(url);
             const data = await response.json();
@@ -161,7 +161,7 @@ class ExpenseTracker {
             this.hideMessage('error');
             this.hideMessage('success');
 
-            const response = await fetch(`${this.apiUrl}/add_expense.php`, {
+            const response = await fetch(`/api/add_expense.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -201,7 +201,7 @@ class ExpenseTracker {
             this.hideMessage('error');
             this.hideMessage('success');
 
-            const response = await fetch(`${this.apiUrl}/delete_expense.php?id=${id}`, {
+            const response = await fetch(`/api/delete_expense.php?id=${id}`, {
                 method: 'DELETE'
             });
 
