@@ -1,15 +1,29 @@
 # Force PHP execution
-AddHandler application/x-httpd-php .php .html
+AddType application/x-httpd-php .php
+AddHandler application/x-httpd-php .php
 
 # Set index.php as default
-DirectoryIndex index.php index.html
+DirectoryIndex index.php
 
 # Enable PHP error reporting
 php_flag display_errors on
 php_value error_reporting E_ALL
 
 # Security headers
-<IfModule mod_headers.c>
-    Header always set X-Content-Type-Options nosniff
-    Header always set X-Frame-Options DENY
-</IfModule>
+Header always set X-Content-Type-Options nosniff
+Header always set X-Frame-Options DENY
+Header always set X-XSS-Protection "1; mode=block"
+
+# Remove .php extension from URLs
+RewriteEngine On
+RewriteCond %{THE_REQUEST} /index\.php [NC]
+RewriteRule ^index\.php$ / [R=301,L,NE]
+
+RewriteCond %{THE_REQUEST} /([^.]+)\.php [NC]
+RewriteRule ^ %1 [R=301,L,NE]
+
+# Add .php extension internally
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^([^/]+)$ $1.php [L]

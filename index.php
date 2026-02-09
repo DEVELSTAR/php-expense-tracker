@@ -63,19 +63,6 @@ if ($is_logged_in) {
                         <button class="nav-link nav-btn" onclick="window.location.href='register.php'">Sign Up</button>
                     <?php endif; ?>
                 </div>
-                
-                <!-- User Info (Desktop only) -->
-                <?php if ($is_logged_in || $is_guest): ?>
-                    <div class="nav-user desktop-only">
-                        <span class="user-status">
-                            <?php if ($is_logged_in): ?>
-                                Logged in as <strong><?php echo htmlspecialchars($current_user['username']); ?></strong>
-                            <?php else: ?>
-                                Guest Mode
-                            <?php endif; ?>
-                        </span>
-                    </div>
-                <?php endif; ?>
             </div>
         </div>
     </nav>
