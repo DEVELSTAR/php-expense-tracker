@@ -33,7 +33,7 @@ if ($is_logged_in) {
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-brand">
-                <h1>Akibworks Expense Tracker</h1>
+                <h1>Expense Tracker</h1>
             </div>
             
             <!-- Hamburger Menu Button -->
