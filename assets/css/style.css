@@ -385,87 +385,21 @@ tbody tr:hover {
 }
 
 .error-message {
-    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    background: #f8d7da;
     color: #721c24;
-    padding: 20px;
-    border-radius: 10px;
-    border: 2px solid #f5c6cb;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #f5c6cb;
     margin-bottom: 20px;
-    box-shadow: 0 4px 12px rgba(245, 198, 203, 0.3);
-    font-weight: 500;
-    position: relative;
-    animation: slideInRight 0.3s ease-out;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.error-message:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(245, 198, 203, 0.4);
 }
 
 .success-message {
-    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    background: #d4edda;
     color: #155724;
-    padding: 20px;
-    border-radius: 10px;
-    border: 2px solid #c3e6cb;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #c3e6cb;
     margin-bottom: 20px;
-    box-shadow: 0 4px 12px rgba(195, 230, 203, 0.3);
-    font-weight: 500;
-    position: relative;
-    animation: slideInRight 0.3s ease-out;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.success-message:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(195, 230, 203, 0.4);
-}
-
-/* Flash message animations */
-@keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-@keyframes slideOutRight {
-    from {
-        transform: translateX(0);
-        opacity: 1;
-    }
-    to {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-}
-
-.flash-message-hiding {
-    animation: slideOutRight 0.3s ease-out forwards;
-}
-
-/* Add close button indicator */
-.error-message::after,
-.success-message::after {
-    content: "✕";
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 18px;
-    opacity: 0.6;
-    transition: opacity 0.3s ease;
-}
-
-.error-message:hover::after,
-.success-message:hover::after {
-    opacity: 1;
 }
 
 .no-expenses {

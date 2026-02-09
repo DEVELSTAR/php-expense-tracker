@@ -323,45 +323,18 @@ class ExpenseTracker {
     showError(message) {
         this.errorMessage.textContent = message;
         this.errorMessage.style.display = 'block';
-        this.errorMessage.classList.remove('flash-message-hiding');
-        
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-            this.hideMessageWithAnimation('error');
-        }, 5000);
     }
 
     showSuccess(message) {
         this.successMessage.textContent = message;
         this.successMessage.style.display = 'block';
-        this.successMessage.classList.remove('flash-message-hiding');
-        
-        // Auto-hide after 3 seconds for success messages
-        setTimeout(() => {
-            this.hideMessageWithAnimation('success');
-        }, 3000);
-    }
-
-    hideMessageWithAnimation(type) {
-        const messageElement = type === 'error' ? this.errorMessage : this.successMessage;
-        
-        // Add hiding animation
-        messageElement.classList.add('flash-message-hiding');
-        
-        // Hide after animation completes
-        setTimeout(() => {
-            messageElement.style.display = 'none';
-            messageElement.classList.remove('flash-message-hiding');
-        }, 300);
     }
 
     hideMessage(type) {
         if (type === 'error') {
             this.errorMessage.style.display = 'none';
-            this.errorMessage.classList.remove('flash-message-hiding');
         } else if (type === 'success') {
             this.successMessage.style.display = 'none';
-            this.successMessage.classList.remove('flash-message-hiding');
         }
     }
 
