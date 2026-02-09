@@ -78,16 +78,22 @@ class ExpenseTracker {
         this.filterCategory = '';
         this.filterDate = null;
         
-        // Select "All" pill button by default (filter section)
-        const allFilterButton = document.querySelector('.pill-btn[data-category=""]');
-        if (allFilterButton) {
-            allFilterButton.setAttribute('data-selected', '');
-        }
+        // Reset all category buttons (form section)
+        this.categoryButtons.forEach(button => {
+            button.removeAttribute('data-selected');
+        });
         
         // Select "Domestic" category button by default (form section)
         const domesticButton = document.querySelector('.category-btn[data-category="Domestic"]');
         if (domesticButton) {
             domesticButton.setAttribute('data-selected', '');
+            this.selectedCategoryInput.value = 'Domestic';
+        }
+        
+        // Select "All" pill button by default (filter section)
+        const allFilterButton = document.querySelector('.pill-btn[data-category=""]');
+        if (allFilterButton) {
+            allFilterButton.setAttribute('data-selected', '');
         }
     }
 

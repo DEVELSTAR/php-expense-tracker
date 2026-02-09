@@ -29,24 +29,51 @@ if ($is_logged_in) {
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Akibworks Expense Tracker</h1>
-            <div class="auth-section">
-                <?php if ($is_logged_in): ?>
-                    <span class="auth-info">Logged in as <strong><?php echo htmlspecialchars($current_user['username']); ?></strong></span>
-                    <button class="btn btn-secondary" onclick="window.location.href='logout.php'">Logout</button>
-                <?php elseif ($is_guest): ?>
-                    <span class="auth-info">Guest Mode (Public Expenses)</span>
-                    <button class="btn btn-primary" onclick="window.location.href='login.php'">Login</button>
-                <?php else: ?>
-                    <button class="btn btn-primary" onclick="window.location.href='login.php'">Login</button>
-                    <button class="btn btn-secondary" onclick="window.location.href='register.php'">Register</button>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h1>Akibworks Expense Tracker</h1>
+            </div>
+            
+            <!-- Hamburger Menu Button -->
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+            
+            <!-- Navigation Menu -->
+            <div class="nav-menu" id="navMenu">
+                <div class="nav-links">
+                    <a href="index.php" class="nav-link active">Expenses</a>
+                    <?php if ($is_logged_in): ?>
+                        <button class="nav-link nav-btn" onclick="window.location.href='logout.php'">Logout</button>
+                    <?php elseif ($is_guest): ?>
+                        <button class="nav-link nav-btn" onclick="window.location.href='login.php'">Login</button>
+                    <?php else: ?>
+                        <button class="nav-link nav-btn" onclick="window.location.href='login.php'">Login</button>
+                        <button class="nav-link nav-btn" onclick="window.location.href='register.php'">Sign Up</button>
+                    <?php endif; ?>
+                </div>
+                
+                <!-- User Info -->
+                <?php if ($is_logged_in || $is_guest): ?>
+                    <div class="nav-user">
+                        <span class="user-status">
+                            <?php if ($is_logged_in): ?>
+                                Logged in as <strong><?php echo htmlspecialchars($current_user['username']); ?></strong>
+                            <?php else: ?>
+                                Guest Mode
+                            <?php endif; ?>
+                        </span>
+                    </div>
                 <?php endif; ?>
             </div>
-        </header>
+        </div>
+    </nav>
 
-        <!-- Add Expense Form -->
+    <div class="container">
         <section class="form-section">
             <h2>Add Expense</h2>
             <form id="expenseForm">
@@ -145,5 +172,23 @@ if ($is_logged_in) {
     </div>
 
     <script src="assets/js/app.js"></script>
+    <script>
+        // Hamburger Menu Toggle
+        const navToggle = document.getElementById('navToggle');
+        const navMenu = document.getElementById('navMenu');
+        
+        navToggle.addEventListener('click', function() {
+            navMenu.classList.toggle('active');
+            navToggle.classList.toggle('active');
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!navToggle.contains(event.target) && !navMenu.contains(event.target)) {
+                navMenu.classList.remove('active');
+                navToggle.classList.remove('active');
+            }
+        });
+    </script>
 </body>
 </html>
