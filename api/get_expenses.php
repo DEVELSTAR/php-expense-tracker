@@ -55,9 +55,18 @@ foreach ($expenses as $expense) {
     $totalSum += floatval($expense['total']);
 }
 
-// Sort by date (newest first)
+// Sort by date and time (newest first)
 usort($filteredExpenses, function($a, $b) {
-    return strtotime($b['expense_date']) - strtotime($a['expense_date']);
+    $dateA = isset($a['created_at']) ? $a['created_at'] : $a['expense_date'];
+    $dateB = isset($b['created_at']) ? $b['created_at'] : $b['expense_date'];
+    
+    // If both have created_at, use that for more precise sorting
+    if (isset($a['created_at']) && isset($b['created_at'])) {
+        return strtotime($dateB) - strtotime($dateA);
+    }
+    
+    // Otherwise sort by expense_date
+    return strtotime($dateB) - strtotime($dateA);
 });
 
 header('Content-Type: application/json');
