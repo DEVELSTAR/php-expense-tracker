@@ -1,77 +1,75 @@
 <?php
-require_once 'db.php';
+session_start();
 
-// Only allow DELETE requests
-if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method not allowed']);
-    exit();
+// Get expense ID
+$expenseId = $_GET['id'] ?? null;
+
+if (!$expenseId) {
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'error' => 'Expense ID required']);
+    exit;
 }
 
-// Get expense ID from URL parameter or request body
-$expense_id = null;
-    exit();
+// Simple file-based storage
+$dataFile = __DIR__ . '/expenses.json';
+
+// Read existing expenses
+$expenses = [];
+if (file_exists($dataFile)) {
+    $json = file_get_contents($dataFile);
+    $expenses = json_decode($json, true) ?: [];
 }
 
-try {
-    // Get expense ID from URL
-    $expense_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-    
-    if ($expense_id <= 0) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Invalid expense ID']);
-        exit();
-    }
-    
-    // Get logged-in user ID
-    $user_id = $_SESSION['user_id']; // null for guest
-    
-    // Check if expense exists and belongs to user
-    $sql = "SELECT id FROM expenses WHERE id = ?";
-    $params = [$expense_id];
-    
-    // Add user filter (guest can only delete guest expenses, logged-in users can only delete their own)
-    if ($user_id === null) {
-        // Guest mode: only delete expenses with user_id IS NULL
-        $sql .= " AND user_id IS NULL";
+// Find and delete expense
+$found = false;
+$updatedExpenses = [];
+
+foreach ($expenses as $expense) {
+    if ($expense['id'] == $expenseId) {
+        // Check if user can delete this expense
+        $userId = $_SESSION['user_id'] ?? null;
+        $isGuest = $_SESSION['is_guest'] ?? false;
+        
+        if ($isGuest) {
+            // Guest can delete guest expenses
+            if ($expense['user_id'] !== null && $expense['user_id'] !== 'guest') {
+                $updatedExpenses[] = $expense; // Keep it, can't delete
+                continue;
+            }
+        } elseif ($userId) {
+            // Logged-in user can delete their own expenses
+            if ($expense['user_id'] != $userId) {
+                $updatedExpenses[] = $expense; // Keep it, can't delete
+                continue;
+            }
+        } else {
+            // Not logged in, can only delete guest expenses
+            if ($expense['user_id'] !== null && $expense['user_id'] !== 'guest') {
+                $updatedExpenses[] = $expense; // Keep it, can't delete
+                continue;
+            }
+        }
+        
+        $found = true; // Don't add this expense to updated array (delete it)
     } else {
-        // Logged-in mode: only delete expenses for this user
-        $sql .= " AND user_id = ?";
-        $params[] = $user_id;
+        $updatedExpenses[] = $expense; // Keep this expense
     }
+}
+
+if ($found) {
+    // Save updated expenses
+    file_put_contents($dataFile, json_encode($updatedExpenses, JSON_PRETTY_PRINT));
     
-    $stmt = $conn->prepare($sql);
-    $stmt->execute($params);
-    
-    if (!$stmt->fetch()) {
-        http_response_code(404);
-        echo json_encode(['error' => 'Expense not found']);
-        exit();
-    }
-    
-    // Delete the expense
-    $delete_sql = "DELETE FROM expenses WHERE id = ?";
-    $delete_params = [$expense_id];
-    
-    // Add user filter for delete (same logic as above)
-    if ($user_id === null) {
-        $delete_sql .= " AND user_id IS NULL";
-    } else {
-        $delete_sql .= " AND user_id = ?";
-        $delete_params[] = $user_id;
-    }
-    
-    $delete_stmt = $conn->prepare($delete_sql);
-    $delete_stmt->execute($delete_params);
-    
+    header('Content-Type: application/json');
     echo json_encode([
         'success' => true,
-        'message' => 'Expense deleted successfully',
-        'deleted_id' => $expense_id
+        'message' => 'Expense deleted successfully'
     ]);
-    
-} catch(PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Failed to delete expense: ' . $e->getMessage()]);
+} else {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'success' => false,
+        'error' => 'Expense not found or cannot be deleted'
+    ]);
 }
 ?>

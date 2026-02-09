@@ -1,80 +1,66 @@
 <?php
 session_start();
-require_once 'db.php';
 
-// Only allow POST requests
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method not allowed']);
-    exit();
+// Get POST data
+$json = file_get_contents('php://input');
+$data = json_decode($json, true);
+
+if (!$data) {
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'error' => 'Invalid data']);
+    exit;
 }
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Authentication required']);
-    exit();
+// Validate required fields
+if (empty($data['expense_date']) || empty($data['total']) || empty($data['category'])) {
+    header('Content-Type: application/json');
+    echo json_encode(['success' => false, 'error' => 'Missing required fields']);
+    exit;
 }
 
-try {
-    // Get POST data
-    $data = json_decode(file_get_contents('php://input'), true);
+// Simple file-based storage
+$dataFile = __DIR__ . '/expenses.json';
 
-    // Validate required fields
-    if (!isset($data['expense_date']) || !isset($data['total']) || !isset($data['category'])) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Missing required fields']);
-        exit();
-    }
-
-    // Validate data
-    $expense_date = $data['expense_date'];
-    $total = floatval($data['total']);
-    $category = $data['category'];
-    $message = isset($data['message']) ? trim($data['message']) : null;
-    $user_id = $_SESSION['user_id']; // Get logged-in user ID (null for guest)
-
-// Validate date format
-if (!DateTime::createFromFormat('Y-m-d', $expense_date)) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Invalid date format']);
-    exit();
+// Read existing expenses
+$expenses = [];
+if (file_exists($dataFile)) {
+    $json = file_get_contents($dataFile);
+    $expenses = json_decode($json, true) ?: [];
 }
 
-// Validate total amount
-if ($total <= 0) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Total amount must be greater than 0']);
-    exit();
+// Add user info based on session
+$userId = $_SESSION['user_id'] ?? null;
+$isGuest = $_SESSION['is_guest'] ?? false;
+
+if ($isGuest) {
+    $data['user_id'] = 'guest';
+} elseif ($userId) {
+    $data['user_id'] = $userId;
+} else {
+    $data['user_id'] = 'guest';
 }
 
-// Validate category
-$allowed_categories = ['Both', 'Domestic', 'Akib', 'Saniya', 'Neha', 'Family'];
-if (!in_array($category, $allowed_categories)) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Invalid category']);
-    exit();
-}
+// Create new expense
+$newExpense = [
+    'id' => time() + rand(1000, 9999), // Simple unique ID
+    'expense_date' => $data['expense_date'],
+    'total' => $data['total'],
+    'category' => $data['category'],
+    'message' => $data['message'] ?? '',
+    'user_id' => $data['user_id'],
+    'created_at' => date('Y-m-d H:i:s')
+];
 
-try {
-    // Insert expense
-    $stmt = $conn->prepare("INSERT INTO expenses (expense_date, total, category, message, user_id) VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$expense_date, $total, $category, $message, $user_id]);
-    
-    // Get the inserted record
-    $id = $conn->lastInsertId();
-    $stmt = $conn->prepare("SELECT * FROM expenses WHERE id = ?");
-    $stmt->execute([$id]);
-    $expense = $stmt->fetch();
-    
-    echo json_encode([
-        'success' => true,
-        'message' => 'Expense added successfully',
-        'expense' => $expense
-    ]);
-    
-} catch(PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Failed to add expense: ' . $e->getMessage()]);
-}
+// Add to expenses array
+$expenses[] = $newExpense;
+
+// Save to file
+file_put_contents($dataFile, json_encode($expenses, JSON_PRETTY_PRINT));
+
+header('Content-Type: application/json');
+echo json_encode([
+    'success' => true,
+    'message' => 'Expense added successfully',
+    'expense' => $newExpense
+]);
 ?>

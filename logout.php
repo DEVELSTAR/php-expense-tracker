@@ -1,10 +1,10 @@
 <?php
 session_start();
 
-// Destroy session
+// Destroy all session data
 session_destroy();
 
-// Redirect to main page
-header('Location: index.html');
-exit();
+// Redirect to index page
+header('Location: index.php');
+exit;
 ?>

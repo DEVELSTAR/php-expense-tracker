@@ -1,73 +1,171 @@
 <?php
 session_start();
-require_once 'api/db.php';
 
-// Only allow POST requests
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method not allowed']);
-    exit();
-}
-
-try {
-    // Get POST data
-    $data = json_decode(file_get_contents('php://input'), true);
+// Handle registration POST request
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json, true);
     
-    if (!isset($data['username']) || !isset($data['password'])) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Username and password required']);
-        exit();
-    }
+    $username = trim($data['username'] ?? '');
+    $password = $data['password'] ?? '';
     
-    $username = trim($data['username']);
-    $password = $data['password'];
-    
-    // Validate username length
+    // Validation
     if (strlen($username) < 3) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Username must be at least 3 characters']);
-        exit();
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Username must be at least 3 characters']);
+        exit;
     }
     
-    // Validate password length
     if (strlen($password) < 6) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Password must be at least 6 characters']);
-        exit();
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Password must be at least 6 characters']);
+        exit;
+    }
+    
+    // Load existing users
+    $usersFile = __DIR__ . '/users.json';
+    $users = [];
+    
+    if (file_exists($usersFile)) {
+        $json = file_get_contents($usersFile);
+        $users = json_decode($json, true) ?: [];
     }
     
     // Check if username already exists
-    $stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
-    $stmt->execute([$username]);
-    if ($stmt->fetch()) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Username already exists']);
-        exit();
+    if (isset($users[$username])) {
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Username already exists']);
+        exit;
     }
     
-    // Hash password
-    $password_hash = password_hash($password, PASSWORD_DEFAULT);
+    // Create new user
+    $newUser = [
+        'id' => time() + rand(1000, 9999),
+        'username' => $username,
+        'password' => $password, // In production, use password_hash()
+        'created_at' => date('Y-m-d H:i:s')
+    ];
     
-    // Create user
-    $stmt = $conn->prepare("INSERT INTO users (username, password_hash) VALUES (?, ?)");
-    $stmt->execute([$username, $password_hash]);
+    $users[$username] = $newUser;
     
-    // Get new user ID
-    $user_id = $conn->lastInsertId();
+    // Save users
+    file_put_contents($usersFile, json_encode($users, JSON_PRETTY_PRINT));
     
-    // Set session
-    $_SESSION['user_id'] = $user_id;
-    $_SESSION['username'] = $username;
+    // Auto-login new user
+    $_SESSION['user_id'] = $newUser['id'];
+    $_SESSION['username'] = $newUser['username'];
     $_SESSION['is_guest'] = false;
     
+    header('Content-Type: application/json');
     echo json_encode([
         'success' => true,
         'message' => 'Registration successful',
-        'user' => ['id' => $user_id, 'username' => $username]
+        'user' => $newUser
     ]);
-    
-} catch(PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Registration failed: ' . $e->getMessage()]);
+    exit;
 }
+
+// Show registration page
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Akibworks Expense Tracker</title>
+    <link rel="icon" type="image/png" href="images/spending.png">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Register</h1>
+            <a href="index.php" class="btn btn-secondary">← Back to Expenses</a>
+        </header>
+
+        <section class="form-section">
+            <h2>Create Account</h2>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="registerUsername">Username:</label>
+                    <input type="text" id="registerUsername" required minlength="3">
+                    <small>At least 3 characters</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerPassword">Password:</label>
+                    <input type="password" id="registerPassword" required minlength="6">
+                    <small>At least 6 characters</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password:</label>
+                    <input type="password" id="confirmPassword" required minlength="6">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Register</button>
+            </form>
+            
+            <div class="auth-links">
+                <p>Already have an account? <a href="login.php">Login here</a></p>
+            </div>
+        </section>
+
+        <div id="loading" class="loading" style="display: none;">
+            Registering...
+        </div>
+
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+        <div id="successMessage" class="success-message" style="display: none;"></div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('registerUsername').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                document.getElementById('errorMessage').textContent = 'Passwords do not match';
+                document.getElementById('errorMessage').style.display = 'block';
+                return;
+            }
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+            
+            try {
+                const response = await fetch('register.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('successMessage').textContent = data.message;
+                    document.getElementById('successMessage').style.display = 'block';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'index.php';
+                    }, 1000);
+                } else {
+                    document.getElementById('errorMessage').textContent = data.error;
+                    document.getElementById('errorMessage').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('errorMessage').textContent = 'Registration failed: ' + error.message;
+                document.getElementById('errorMessage').style.display = 'block';
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,73 +1,150 @@
 <?php
 session_start();
-require_once 'api/db.php';
 
-// Only allow POST requests
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method not allowed']);
-    exit();
-}
-
-try {
-    // Get POST data
-    $data = json_decode(file_get_contents('php://input'), true);
+// Handle login POST request
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $json = file_get_contents('php://input');
+    $data = json_decode($json, true);
     
-    if (!isset($data['username']) || !isset($data['password'])) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Username and password required']);
-        exit();
-    }
+    $username = $data['username'] ?? '';
+    $password = $data['password'] ?? '';
     
-    $username = trim($data['username']);
-    $password = $data['password'];
-    
-    // Special case for guest user
     if ($username === 'guest') {
-        // Allow guest login with any password for demo purposes
-        $_SESSION['user_id'] = null;
+        // Guest login
+        $_SESSION['user_id'] = 'guest';
         $_SESSION['username'] = 'Guest';
         $_SESSION['is_guest'] = true;
         
+        header('Content-Type: application/json');
         echo json_encode([
             'success' => true,
             'message' => 'Logged in as Guest',
-            'user' => ['id' => null, 'username' => 'Guest']
+            'user' => ['id' => 'guest', 'username' => 'Guest']
         ]);
-        exit();
+        exit;
     }
     
-    // Find user in database
-    $stmt = $conn->prepare("SELECT id, username, password_hash FROM users WHERE username = ?");
-    $stmt->execute([$username]);
-    $user = $stmt->fetch();
+    // Simple user validation (in production, use proper password hashing)
+    $usersFile = __DIR__ . '/users.json';
+    $users = [];
     
-    if (!$user) {
-        http_response_code(401);
-        echo json_encode(['error' => 'Invalid username or password']);
-        exit();
+    if (file_exists($usersFile)) {
+        $json = file_get_contents($usersFile);
+        $users = json_decode($json, true) ?: [];
     }
     
-    // Verify password
-    if (!password_verify($password, $user['password_hash'])) {
-        http_response_code(401);
-        echo json_encode(['error' => 'Invalid username or password']);
-        exit();
+    if (isset($users[$username]) && $users[$username]['password'] === $password) {
+        $_SESSION['user_id'] = $users[$username]['id'];
+        $_SESSION['username'] = $users[$username]['username'];
+        $_SESSION['is_guest'] = false;
+        
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => true,
+            'message' => 'Login successful',
+            'user' => $users[$username]
+        ]);
+    } else {
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => false,
+            'error' => 'Invalid username or password'
+        ]);
     }
-    
-    // Set session
-    $_SESSION['user_id'] = $user['id'];
-    $_SESSION['username'] = $user['username'];
-    $_SESSION['is_guest'] = false;
-    
-    echo json_encode([
-        'success' => true,
-        'message' => 'Login successful',
-        'user' => ['id' => $user['id'], 'username' => $user['username']]
-    ]);
-    
-} catch(PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Login failed: ' . $e->getMessage()]);
+    exit;
 }
+
+// Show login page
 ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Akibworks Expense Tracker</title>
+    <link rel="icon" type="image/png" href="images/spending.png">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Login</h1>
+            <a href="index.php" class="btn btn-secondary">← Back to Expenses</a>
+        </header>
+
+        <section class="form-section">
+            <h2>Login to Your Account</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginUsername">Username:</label>
+                    <input type="text" id="loginUsername" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">Password:</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Login</button>
+                
+                <p class="auth-note">
+                    <small>Guest login: username "guest" with any password</small>
+                </p>
+            </form>
+            
+            <div class="auth-links">
+                <p>Don't have an account? <a href="register.php">Register here</a></p>
+            </div>
+        </section>
+
+        <div id="loading" class="loading" style="display: none;">
+            Logging in...
+        </div>
+
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+        <div id="successMessage" class="success-message" style="display: none;"></div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+            
+            try {
+                const response = await fetch('login.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('successMessage').textContent = data.message;
+                    document.getElementById('successMessage').style.display = 'block';
+                    
+                    setTimeout(() => {
+                        window.location.href = 'index.php';
+                    }, 1000);
+                } else {
+                    document.getElementById('errorMessage').textContent = data.error;
+                    document.getElementById('errorMessage').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('errorMessage').textContent = 'Login failed: ' + error.message;
+                document.getElementById('errorMessage').style.display = 'block';
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

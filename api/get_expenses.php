@@ -1,113 +1,69 @@
 <?php
 session_start();
-require_once 'db.php';
 
-// Only allow GET requests
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    http_response_code(405);
-    echo json_encode(['error' => 'Method not allowed']);
-    exit();
+// Simple file-based storage for demo
+$dataFile = __DIR__ . '/expenses.json';
+
+// Read expenses from file
+$expenses = [];
+if (file_exists($dataFile)) {
+    $json = file_get_contents($dataFile);
+    $expenses = json_decode($json, true) ?: [];
 }
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Authentication required']);
-    exit();
-}
+// Get filters
+$category = $_GET['category'] ?? '';
+$date = $_GET['date'] ?? '';
 
-try {
-    // Get category filter if exists
-    $category = isset($_GET['category']) ? $_GET['category'] : '';
+// Filter expenses based on user session
+$filteredExpenses = [];
+$totalSum = 0;
+
+foreach ($expenses as $expense) {
+    // Filter by user
+    $userId = $_SESSION['user_id'] ?? null;
+    $isGuest = $_SESSION['is_guest'] ?? false;
     
-    // Get date filter if exists
-    $date = isset($_GET['date']) ? $_GET['date'] : '';
-    
-    // Get logged-in user ID
-    $user_id = $_SESSION['user_id']; // null for guest
-    
-    // Build query based on filters
-    $sql = "SELECT * FROM expenses";
-    $params = [];
-    $where_clauses = [];
-    
-    // Check if category filter is provided
-    if ($category !== '') {
-        $where_clauses[] = "category = ?";
-        $params[] = $category;
-    }
-    
-    // Check if date filter is provided
-    if ($date !== '') {
-        $where_clauses[] = "expense_date = ?";
-        $params[] = $date;
-    }
-    
-    // Add user filter (guest sees only guest expenses, logged-in users see only their own)
-    if ($user_id === null) {
-        // Guest mode: only show expenses with user_id IS NULL
-        $where_clauses[] = "user_id IS NULL";
+    if ($isGuest) {
+        // Guest sees only guest expenses (user_id is null or 'guest')
+        if ($expense['user_id'] !== null && $expense['user_id'] !== 'guest') {
+            continue;
+        }
+    } elseif ($userId) {
+        // Logged-in user sees only their expenses
+        if ($expense['user_id'] != $userId) {
+            continue;
+        }
     } else {
-        // Logged-in mode: only show expenses for this user
-        $where_clauses[] = "user_id = ?";
-        $params[] = $user_id;
+        // Not logged in, show guest expenses
+        if ($expense['user_id'] !== null && $expense['user_id'] !== 'guest') {
+            continue;
+        }
     }
     
-    // Add WHERE clause if any filters exist
-    if (!empty($where_clauses)) {
-        $sql .= " WHERE " . implode(' AND ', $where_clauses);
+    // Apply category filter
+    if ($category && $expense['category'] !== $category) {
+        continue;
     }
     
-    // Order by date descending (newest first)
-    $sql .= " ORDER BY expense_date DESC, created_at DESC";
-    
-    $stmt = $conn->prepare($sql);
-    $stmt->execute($params);
-    $expenses = $stmt->fetchAll();
-    
-    // Calculate total sum with same filters
-    $total_sql = "SELECT SUM(total) as total_sum FROM expenses";
-    $total_params = [];
-    $total_where_clauses = [];
-    
-    if ($category !== '') {
-        $total_where_clauses[] = "category = ?";
-        $total_params[] = $category;
+    // Apply date filter
+    if ($date && $expense['expense_date'] !== $date) {
+        continue;
     }
     
-    if ($date !== '') {
-        $total_where_clauses[] = "expense_date = ?";
-        $total_params[] = $date;
-    }
-    
-    // Add user filter for total calculation
-    if ($user_id === null) {
-        // Guest mode: only sum expenses with user_id IS NULL
-        $total_where_clauses[] = "user_id IS NULL";
-    } else {
-        // Logged-in mode: only sum expenses for this user
-        $total_where_clauses[] = "user_id = ?";
-        $total_params[] = $user_id;
-    }
-    
-    if (!empty($total_where_clauses)) {
-        $total_sql .= " WHERE " . implode(' AND ', $total_where_clauses);
-    }
-    
-    $total_stmt = $conn->prepare($total_sql);
-    $total_stmt->execute($total_params);
-    $total_result = $total_stmt->fetch();
-    $total_sum = $total_result['total_sum'] ?? 0;
-    
-    echo json_encode([
-        'success' => true,
-        'expenses' => $expenses,
-        'total_sum' => floatval($total_sum),
-        'count' => count($expenses)
-    ]);
-    
-} catch(PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Failed to fetch expenses: ' . $e->getMessage()]);
+    $filteredExpenses[] = $expense;
+    $totalSum += floatval($expense['total']);
 }
+
+// Sort by date (newest first)
+usort($filteredExpenses, function($a, $b) {
+    return strtotime($b['expense_date']) - strtotime($a['expense_date']);
+});
+
+header('Content-Type: application/json');
+echo json_encode([
+    'success' => true,
+    'expenses' => $filteredExpenses,
+    'total_sum' => $totalSum
+]);
 ?>

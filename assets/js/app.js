@@ -1,30 +1,15 @@
-// Expense Tracker Application - Pure JavaScript Version
+// Expense Tracker Application - PHP Session Version
 class ExpenseTracker {
     constructor() {
+        this.apiUrl = 'api';
         this.expenses = [];
         this.currentFilter = '';
-        this.currentUser = this.getCurrentUser();
+        this.currentUser = null;
         
         this.initializeElements();
         this.bindEvents();
         this.setDefaultDate();
-        this.updateAuthUI();
         this.loadExpenses();
-    }
-
-    getCurrentUser() {
-        const userStr = localStorage.getItem('currentUser');
-        return userStr ? JSON.parse(userStr) : null;
-    }
-
-    setCurrentUser(user) {
-        if (user) {
-            localStorage.setItem('currentUser', JSON.stringify(user));
-        } else {
-            localStorage.removeItem('currentUser');
-        }
-        this.currentUser = user;
-        this.updateAuthUI();
     }
 
     initializeElements() {
@@ -51,14 +36,6 @@ class ExpenseTracker {
         this.loadingIndicator = document.getElementById('loading');
         this.errorMessage = document.getElementById('errorMessage');
         this.successMessage = document.getElementById('successMessage');
-        
-        // Auth elements
-        this.authInfo = document.getElementById('authInfo');
-        this.authButton = document.getElementById('authButton');
-        
-        // Modal forms
-        this.loginForm = document.getElementById('loginForm');
-        this.registerForm = document.getElementById('registerForm');
     }
 
     bindEvents() {
@@ -88,33 +65,9 @@ class ExpenseTracker {
             this.applyFilters();
         });
 
-        // Login form
-        this.loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleLogin();
-        });
-
-        // Register form
-        this.registerForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleRegister();
-        });
-
         // Hide messages when clicking on them
         this.errorMessage.addEventListener('click', () => this.hideMessage('error'));
         this.successMessage.addEventListener('click', () => this.hideMessage('success'));
-    }
-
-    updateAuthUI() {
-        if (this.currentUser) {
-            this.authInfo.textContent = `Logged in as ${this.currentUser.username}`;
-            this.authButton.textContent = 'Logout';
-            this.authButton.onclick = () => this.logout();
-        } else {
-            this.authInfo.textContent = 'Guest Mode (Public Expenses)';
-            this.authButton.textContent = 'Login';
-            this.authButton.onclick = () => showLoginModal();
-        }
     }
 
     setDefaultDate() {
@@ -138,63 +91,51 @@ class ExpenseTracker {
         }
     }
 
-    loadExpenses() {
-        this.showLoading();
-        this.hideMessage('error');
-        this.hideMessage('success');
+    async loadExpenses() {
+        try {
+            this.showLoading();
+            this.hideMessage('error');
+            this.hideMessage('success');
 
-        // Load expenses from localStorage
-        const allExpenses = this.getAllExpensesFromStorage();
-        
-        // Filter expenses based on current user and filters
-        this.expenses = this.filterExpenses(allExpenses);
-        
-        // Calculate total
-        const total = this.expenses.reduce((sum, expense) => sum + parseFloat(expense.total), 0);
-        this.updateTotalDisplay(total);
-        
-        // Render expenses
-        this.renderExpenses();
-        
-        this.hideLoading();
-    }
+            // Build URL with filters
+            const params = new URLSearchParams();
+            
+            if (this.filterCategory && this.filterCategory !== '') {
+                params.append('category', this.filterCategory);
+            }
+            
+            if (this.filterDate && this.filterDate !== '') {
+                params.append('date', this.filterDate);
+            }
 
-    getAllExpensesFromStorage() {
-        const expensesStr = localStorage.getItem('expenses');
-        return expensesStr ? JSON.parse(expensesStr) : [];
-    }
+            const url = params.toString() ? `${this.apiUrl}/get_expenses.php?${params.toString()}` : `${this.apiUrl}/get_expenses.php`;
 
-    saveExpensesToStorage(expenses) {
-        localStorage.setItem('expenses', JSON.stringify(expenses));
-    }
+            const response = await fetch(url);
+            const data = await response.json();
 
-    filterExpenses(allExpenses) {
-        let filtered = allExpenses;
-        
-        // Filter by user
-        if (this.currentUser) {
-            filtered = filtered.filter(expense => expense.user_id === this.currentUser.id);
-        } else {
-            filtered = filtered.filter(expense => expense.user_id === 'guest' || !expense.user_id);
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to load expenses');
+            }
+
+            if (data.success) {
+                this.expenses = data.expenses;
+                this.updateTotalDisplay(data.total_sum);
+                this.renderExpenses();
+            } else {
+                throw new Error(data.error || 'Unknown error occurred');
+            }
+
+        } catch (error) {
+            this.showError(`Error loading expenses: ${error.message}`);
+            this.expenses = [];
+            this.updateTotalDisplay(0);
+            this.renderExpenses();
+        } finally {
+            this.hideLoading();
         }
-        
-        // Filter by category
-        if (this.filterCategory && this.filterCategory !== '') {
-            filtered = filtered.filter(expense => expense.category === this.filterCategory);
-        }
-        
-        // Filter by date
-        if (this.filterDate && this.filterDate !== '') {
-            filtered = filtered.filter(expense => expense.expense_date === this.filterDate);
-        }
-        
-        // Sort by date (newest first)
-        filtered.sort((a, b) => new Date(b.expense_date) - new Date(a.expense_date));
-        
-        return filtered;
     }
 
-    addExpense() {
+    async addExpense() {
         const selectedCategory = this.selectedCategoryInput.value;
         
         if (!selectedCategory) {
@@ -203,13 +144,10 @@ class ExpenseTracker {
         }
 
         const expenseData = {
-            id: Date.now(), // Simple ID using timestamp
             expense_date: this.expenseDateInput.value,
             total: parseFloat(this.totalAmountInput.value),
             category: selectedCategory,
-            message: this.messageInput.value.trim(),
-            user_id: this.currentUser ? this.currentUser.id : 'guest',
-            created_at: new Date().toISOString()
+            message: this.messageInput.value.trim()
         };
 
         try {
@@ -217,19 +155,28 @@ class ExpenseTracker {
             this.hideMessage('error');
             this.hideMessage('success');
 
-            // Get existing expenses
-            const allExpenses = this.getAllExpensesFromStorage();
-            
-            // Add new expense
-            allExpenses.push(expenseData);
-            
-            // Save to localStorage
-            this.saveExpensesToStorage(allExpenses);
-            
-            this.showSuccess('Expense added successfully');
-            this.expenseForm.reset();
-            this.setDefaultDate();
-            this.loadExpenses();
+            const response = await fetch(`${this.apiUrl}/add_expense.php`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(expenseData)
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to add expense');
+            }
+
+            if (data.success) {
+                this.showSuccess('Expense added successfully');
+                this.expenseForm.reset();
+                this.setDefaultDate();
+                this.loadExpenses();
+            } else {
+                throw new Error(data.error || 'Unknown error occurred');
+            }
 
         } catch (error) {
             this.showError(`Error adding expense: ${error.message}`);
@@ -238,7 +185,7 @@ class ExpenseTracker {
         }
     }
 
-    deleteExpense(id) {
+    async deleteExpense(id) {
         if (!confirm('Are you sure you want to delete this expense?')) {
             return;
         }
@@ -248,17 +195,22 @@ class ExpenseTracker {
             this.hideMessage('error');
             this.hideMessage('success');
 
-            // Get existing expenses
-            const allExpenses = this.getAllExpensesFromStorage();
-            
-            // Find and remove expense
-            const updatedExpenses = allExpenses.filter(expense => expense.id !== id);
-            
-            // Save to localStorage
-            this.saveExpensesToStorage(updatedExpenses);
-            
-            this.showSuccess('Expense deleted successfully');
-            this.loadExpenses();
+            const response = await fetch(`${this.apiUrl}/delete_expense.php?id=${id}`, {
+                method: 'DELETE'
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to delete expense');
+            }
+
+            if (data.success) {
+                this.showSuccess('Expense deleted successfully');
+                this.loadExpenses();
+            } else {
+                throw new Error(data.error || 'Unknown error occurred');
+            }
 
         } catch (error) {
             this.showError(`Error deleting expense: ${error.message}`);
@@ -298,103 +250,6 @@ class ExpenseTracker {
 
     applyFilters() {
         // Load filtered expenses immediately
-        this.loadExpenses();
-    }
-
-    handleLogin() {
-        const username = document.getElementById('loginUsername').value.trim();
-        const password = document.getElementById('loginPassword').value;
-        
-        this.hideMessages();
-        
-        // Simple authentication logic
-        if (username === 'guest') {
-            // Guest login - always succeeds
-            const guestUser = {
-                id: 'guest',
-                username: 'Guest'
-            };
-            this.setCurrentUser(guestUser);
-            this.showSuccess('Logged in as Guest');
-            hideLoginModal();
-            this.loadExpenses();
-        } else if (username && password) {
-            // Check if user exists in localStorage (simple demo)
-            const usersStr = localStorage.getItem('users');
-            const users = usersStr ? JSON.parse(usersStr) : {};
-            
-            if (users[username] && users[username].password === password) {
-                this.setCurrentUser(users[username]);
-                this.showSuccess('Login successful');
-                hideLoginModal();
-                this.loadExpenses();
-            } else {
-                this.showError('Invalid username or password');
-            }
-        } else {
-            this.showError('Please enter username and password');
-        }
-    }
-
-    handleRegister() {
-        const username = document.getElementById('registerUsername').value.trim();
-        const password = document.getElementById('registerPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-        
-        this.hideMessages();
-        
-        if (password !== confirmPassword) {
-            this.showError('Passwords do not match');
-            return;
-        }
-        
-        if (username.length < 3) {
-            this.showError('Username must be at least 3 characters');
-            return;
-        }
-        
-        if (password.length < 6) {
-            this.showError('Password must be at least 6 characters');
-            return;
-        }
-        
-        try {
-            // Get existing users
-            const usersStr = localStorage.getItem('users');
-            const users = usersStr ? JSON.parse(usersStr) : {};
-            
-            // Check if username already exists
-            if (users[username]) {
-                this.showError('Username already exists');
-                return;
-            }
-            
-            // Create new user
-            const newUser = {
-                id: Date.now().toString(),
-                username: username,
-                password: password
-            };
-            
-            users[username] = newUser;
-            
-            // Save users to localStorage
-            localStorage.setItem('users', JSON.stringify(users));
-            
-            // Auto-login new user
-            this.setCurrentUser(newUser);
-            this.showSuccess('Registration successful');
-            hideRegisterModal();
-            this.loadExpenses();
-            
-        } catch (error) {
-            this.showError('Registration failed: ' + error.message);
-        }
-    }
-
-    logout() {
-        this.setCurrentUser(null);
-        this.showSuccess('Logged out successfully');
         this.loadExpenses();
     }
 
