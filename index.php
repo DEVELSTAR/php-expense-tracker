@@ -27,7 +27,7 @@ if ($is_logged_in) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Akibworks Expense Tracker</title>
     <link rel="icon" type="image/png" href="images/spending.png">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
     <div class="container">
@@ -42,7 +42,7 @@ if ($is_logged_in) {
                     <button class="btn btn-primary" onclick="showLoginModal()">Login</button>
                 <?php else: ?>
                     <button class="btn btn-primary" onclick="showLoginModal()">Login</button>
-                    <button class="btn btn-secondary" onclick="window.location.href='register.php'">Register</button>
+                    <button class="btn btn-secondary" onclick="window.location.href='register.html'">Register</button>
                 <?php endif; ?>
             </div>
         </header>
@@ -171,7 +171,7 @@ if ($is_logged_in) {
         </div>
     </div>
 
-    <script src="js/app.js"></script>
+    <script src="assets/js/app.js"></script>
     <script>
         function showLoginModal() {
             document.getElementById('loginModal').style.display = 'block';
