@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once 'db.php';
 
 // Only allow GET requests
@@ -8,12 +9,22 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     exit();
 }
 
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Authentication required']);
+    exit();
+}
+
 try {
     // Get category filter if exists
     $category = isset($_GET['category']) ? $_GET['category'] : '';
     
     // Get date filter if exists
     $date = isset($_GET['date']) ? $_GET['date'] : '';
+    
+    // Get logged-in user ID
+    $user_id = $_SESSION['user_id']; // null for guest
     
     // Build query based on filters
     $sql = "SELECT * FROM expenses";
@@ -30,6 +41,16 @@ try {
     if ($date !== '') {
         $where_clauses[] = "expense_date = ?";
         $params[] = $date;
+    }
+    
+    // Add user filter (guest sees only guest expenses, logged-in users see only their own)
+    if ($user_id === null) {
+        // Guest mode: only show expenses with user_id IS NULL
+        $where_clauses[] = "user_id IS NULL";
+    } else {
+        // Logged-in mode: only show expenses for this user
+        $where_clauses[] = "user_id = ?";
+        $params[] = $user_id;
     }
     
     // Add WHERE clause if any filters exist
@@ -57,6 +78,16 @@ try {
     if ($date !== '') {
         $total_where_clauses[] = "expense_date = ?";
         $total_params[] = $date;
+    }
+    
+    // Add user filter for total calculation
+    if ($user_id === null) {
+        // Guest mode: only sum expenses with user_id IS NULL
+        $total_where_clauses[] = "user_id IS NULL";
+    } else {
+        // Logged-in mode: only sum expenses for this user
+        $total_where_clauses[] = "user_id = ?";
+        $total_params[] = $user_id;
     }
     
     if (!empty($total_where_clauses)) {

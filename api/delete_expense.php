@@ -10,42 +10,59 @@ if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
 
 // Get expense ID from URL parameter or request body
 $expense_id = null;
-
-// Try to get ID from URL parameter (for DELETE /api/delete_expense.php?id=123)
-if (isset($_GET['id'])) {
-    $expense_id = intval($_GET['id']);
-}
-
-// Try to get ID from JSON body (for DELETE /api/delete_expense.php with JSON payload)
-if ($expense_id === null) {
-    $data = json_decode(file_get_contents('php://input'), true);
-    if (isset($data['id'])) {
-        $expense_id = intval($data['id']);
-    }
-}
-
-// Validate expense ID
-if (!$expense_id || $expense_id <= 0) {
-    http_response_code(400);
-    echo json_encode(['error' => 'Invalid or missing expense ID']);
     exit();
 }
 
 try {
-    // Check if expense exists
-    $check_stmt = $conn->prepare("SELECT id FROM expenses WHERE id = ?");
-    $check_stmt->execute([$expense_id]);
-    $existing = $check_stmt->fetch();
+    // Get expense ID from URL
+    $expense_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
     
-    if (!$existing) {
+    if ($expense_id <= 0) {
+        http_response_code(400);
+        echo json_encode(['error' => 'Invalid expense ID']);
+        exit();
+    }
+    
+    // Get logged-in user ID
+    $user_id = $_SESSION['user_id']; // null for guest
+    
+    // Check if expense exists and belongs to user
+    $sql = "SELECT id FROM expenses WHERE id = ?";
+    $params = [$expense_id];
+    
+    // Add user filter (guest can only delete guest expenses, logged-in users can only delete their own)
+    if ($user_id === null) {
+        // Guest mode: only delete expenses with user_id IS NULL
+        $sql .= " AND user_id IS NULL";
+    } else {
+        // Logged-in mode: only delete expenses for this user
+        $sql .= " AND user_id = ?";
+        $params[] = $user_id;
+    }
+    
+    $stmt = $conn->prepare($sql);
+    $stmt->execute($params);
+    
+    if (!$stmt->fetch()) {
         http_response_code(404);
         echo json_encode(['error' => 'Expense not found']);
         exit();
     }
     
-    // Delete expense
-    $stmt = $conn->prepare("DELETE FROM expenses WHERE id = ?");
-    $stmt->execute([$expense_id]);
+    // Delete the expense
+    $delete_sql = "DELETE FROM expenses WHERE id = ?";
+    $delete_params = [$expense_id];
+    
+    // Add user filter for delete (same logic as above)
+    if ($user_id === null) {
+        $delete_sql .= " AND user_id IS NULL";
+    } else {
+        $delete_sql .= " AND user_id = ?";
+        $delete_params[] = $user_id;
+    }
+    
+    $delete_stmt = $conn->prepare($delete_sql);
+    $delete_stmt->execute($delete_params);
     
     echo json_encode([
         'success' => true,
