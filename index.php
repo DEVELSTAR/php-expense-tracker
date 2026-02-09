@@ -47,14 +47,6 @@ if ($is_logged_in) {
             <div class="nav-menu" id="navMenu">
                 <div class="nav-links">
                     <a href="index.php" class="nav-link active">Expenses</a>
-                    <?php if ($is_logged_in): ?>
-                        <button class="nav-link nav-btn" onclick="window.location.href='logout.php'">Logout</button>
-                    <?php elseif ($is_guest): ?>
-                        <button class="nav-link nav-btn" onclick="window.location.href='login.php'">Login</button>
-                    <?php else: ?>
-                        <button class="nav-link nav-btn" onclick="window.location.href='login.php'">Login</button>
-                        <button class="nav-link nav-btn" onclick="window.location.href='register.php'">Sign Up</button>
-                    <?php endif; ?>
                 </div>
                 
                 <!-- User Info -->
@@ -74,6 +66,69 @@ if ($is_logged_in) {
     </nav>
 
     <div class="container">
+        <!-- Authentication Cards (shown when not logged in) -->
+        <?php if (!$is_logged_in && !$is_guest): ?>
+            <div class="auth-cards">
+                <div class="auth-card">
+                    <div class="auth-card-header">
+                        <h3>🔐 Login</h3>
+                        <p>Access your existing expenses</p>
+                    </div>
+                    <div class="auth-card-body">
+                        <form id="loginCardForm">
+                            <div class="form-group">
+                                <label for="loginUsername">Username:</label>
+                                <input type="text" id="loginUsername" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="loginPassword">Password:</label>
+                                <input type="password" id="loginPassword" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-full">Login</button>
+                            <p class="auth-note">
+                                <small>Guest login: username "guest" with any password</small>
+                            </p>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="auth-card">
+                    <div class="auth-card-header">
+                        <h3>📝 Sign Up</h3>
+                        <p>Create a new account</p>
+                    </div>
+                    <div class="auth-card-body">
+                        <form id="registerCardForm">
+                            <div class="form-group">
+                                <label for="registerUsername">Username:</label>
+                                <input type="text" id="registerUsername" required minlength="3">
+                                <small>At least 3 characters</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="registerPassword">Password:</label>
+                                <input type="password" id="registerPassword" required minlength="6">
+                                <small>At least 6 characters</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmPassword">Confirm Password:</label>
+                                <input type="password" id="confirmPassword" required minlength="6">
+                            </div>
+                            <button type="submit" class="btn btn-secondary btn-full">Sign Up</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading and Messages for Auth Cards -->
+            <div id="authLoading" class="loading" style="display: none;">
+                Processing...
+            </div>
+            <div id="authErrorMessage" class="error-message" style="display: none;"></div>
+            <div id="authSuccessMessage" class="success-message" style="display: none;"></div>
+        <?php endif; ?>
+
+        <!-- Add Expense Form (shown when logged in) -->
+        <?php if ($is_logged_in || $is_guest): ?>
         <section class="form-section">
             <h2>Add Expense</h2>
             <form id="expenseForm">
@@ -169,6 +224,7 @@ if ($is_logged_in) {
                 </div>
             </div>
         </section>
+        <?php endif; ?>
     </div>
 
     <script src="assets/js/app.js"></script>
@@ -189,6 +245,101 @@ if ($is_logged_in) {
                 navToggle.classList.remove('active');
             }
         });
+
+        // Auth Card Forms
+        const loginCardForm = document.getElementById('loginCardForm');
+        const registerCardForm = document.getElementById('registerCardForm');
+        
+        if (loginCardForm) {
+            loginCardForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('loginUsername').value.trim();
+                const password = document.getElementById('loginPassword').value;
+                
+                document.getElementById('authLoading').style.display = 'block';
+                document.getElementById('authErrorMessage').style.display = 'none';
+                document.getElementById('authSuccessMessage').style.display = 'none';
+                
+                try {
+                    const response = await fetch('login.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        document.getElementById('authSuccessMessage').textContent = data.message;
+                        document.getElementById('authSuccessMessage').style.display = 'block';
+                        
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        document.getElementById('authErrorMessage').textContent = data.error;
+                        document.getElementById('authErrorMessage').style.display = 'block';
+                    }
+                } catch (error) {
+                    document.getElementById('authErrorMessage').textContent = 'Login failed: ' + error.message;
+                    document.getElementById('authErrorMessage').style.display = 'block';
+                } finally {
+                    document.getElementById('authLoading').style.display = 'none';
+                }
+            });
+        }
+        
+        if (registerCardForm) {
+            registerCardForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const username = document.getElementById('registerUsername').value.trim();
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                if (password !== confirmPassword) {
+                    document.getElementById('authErrorMessage').textContent = 'Passwords do not match';
+                    document.getElementById('authErrorMessage').style.display = 'block';
+                    return;
+                }
+                
+                document.getElementById('authLoading').style.display = 'block';
+                document.getElementById('authErrorMessage').style.display = 'none';
+                document.getElementById('authSuccessMessage').style.display = 'none';
+                
+                try {
+                    const response = await fetch('register.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        document.getElementById('authSuccessMessage').textContent = data.message;
+                        document.getElementById('authSuccessMessage').style.display = 'block';
+                        
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1000);
+                    } else {
+                        document.getElementById('authErrorMessage').textContent = data.error;
+                        document.getElementById('authErrorMessage').style.display = 'block';
+                    }
+                } catch (error) {
+                    document.getElementById('authErrorMessage').textContent = 'Registration failed: ' + error.message;
+                    document.getElementById('authErrorMessage').style.display = 'block';
+                } finally {
+                    document.getElementById('authLoading').style.display = 'none';
+                }
+            });
+        }
     </script>
 </body>
 </html>
