@@ -48,17 +48,25 @@ if ($is_logged_in) {
                 <div class="nav-links">
                     <?php if ($is_logged_in): ?>
                         <button class="nav-link nav-btn" onclick="window.location.href='logout.php'">Logout</button>
+                        <div class="nav-user-inline">
+                            <span class="user-status">
+                                Logged in as <strong><?php echo htmlspecialchars($current_user['username']); ?></strong>
+                            </span>
+                        </div>
                     <?php elseif ($is_guest): ?>
                         <button class="nav-link nav-btn" onclick="window.location.href='login.php'">Login</button>
+                        <div class="nav-user-inline">
+                            <span class="user-status">Guest Mode</span>
+                        </div>
                     <?php else: ?>
                         <button class="nav-link nav-btn" onclick="window.location.href='login.php'">Login</button>
                         <button class="nav-link nav-btn" onclick="window.location.href='register.php'">Sign Up</button>
                     <?php endif; ?>
                 </div>
                 
-                <!-- User Info -->
+                <!-- User Info (Desktop only) -->
                 <?php if ($is_logged_in || $is_guest): ?>
-                    <div class="nav-user">
+                    <div class="nav-user desktop-only">
                         <span class="user-status">
                             <?php if ($is_logged_in): ?>
                                 Logged in as <strong><?php echo htmlspecialchars($current_user['username']); ?></strong>
