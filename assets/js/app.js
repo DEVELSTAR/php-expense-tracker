@@ -4,11 +4,28 @@ class ExpenseTracker {
         this.apiUrl = 'api';
         this.expenses = [];
         this.currentFilter = '';
+        this.currentUser = this.getCurrentUser();
         
         this.initializeElements();
         this.bindEvents();
         this.setDefaultDate();
+        this.updateAuthUI();
         this.loadExpenses();
+    }
+
+    getCurrentUser() {
+        const userStr = localStorage.getItem('currentUser');
+        return userStr ? JSON.parse(userStr) : null;
+    }
+
+    setCurrentUser(user) {
+        if (user) {
+            localStorage.setItem('currentUser', JSON.stringify(user));
+        } else {
+            localStorage.removeItem('currentUser');
+        }
+        this.currentUser = user;
+        this.updateAuthUI();
     }
 
     initializeElements() {
@@ -35,6 +52,14 @@ class ExpenseTracker {
         this.loadingIndicator = document.getElementById('loading');
         this.errorMessage = document.getElementById('errorMessage');
         this.successMessage = document.getElementById('successMessage');
+        
+        // Auth elements
+        this.authInfo = document.getElementById('authInfo');
+        this.authButton = document.getElementById('authButton');
+        
+        // Modal forms
+        this.loginForm = document.getElementById('loginForm');
+        this.registerForm = document.getElementById('registerForm');
     }
 
     bindEvents() {
@@ -64,9 +89,33 @@ class ExpenseTracker {
             this.applyFilters();
         });
 
+        // Login form
+        this.loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleLogin();
+        });
+
+        // Register form
+        this.registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleRegister();
+        });
+
         // Hide messages when clicking on them
         this.errorMessage.addEventListener('click', () => this.hideMessage('error'));
         this.successMessage.addEventListener('click', () => this.hideMessage('success'));
+    }
+
+    updateAuthUI() {
+        if (this.currentUser) {
+            this.authInfo.textContent = `Logged in as ${this.currentUser.username}`;
+            this.authButton.textContent = 'Logout';
+            this.authButton.onclick = () => this.logout();
+        } else {
+            this.authInfo.textContent = 'Guest Mode (Public Expenses)';
+            this.authButton.textContent = 'Login';
+            this.authButton.onclick = () => showLoginModal();
+        }
     }
 
     setDefaultDate() {
@@ -99,93 +148,22 @@ class ExpenseTracker {
             // Build URL with filters
             const params = new URLSearchParams();
             
-            if (this.currentFilter && this.currentFilter !== '') {
-                params.append('category', this.currentFilter);
+            if (this.filterCategory && this.filterCategory !== '') {
+                params.append('category', this.filterCategory);
             }
             
-            if (this.currentDate && this.currentDate !== '') {
-                params.append('date', this.currentDate);
+            if (this.filterDate && this.filterDate !== '') {
+                params.append('date', this.filterDate);
+            }
+
+            // Add user parameter for API
+            if (this.currentUser) {
+                params.append('user_id', this.currentUser.id);
+            } else {
+                params.append('user_id', 'guest');
             }
 
             const url = params.toString() ? `${this.apiUrl}/get_expenses.php?${params.toString()}` : `${this.apiUrl}/get_expenses.php`;
-
-            const response = await fetch(url);
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to load expenses');
-            }
-
-            if (data.success) {
-                this.expenses = data.expenses;
-                this.updateTotalDisplay(data.total_sum);
-                this.renderExpenses();
-            } else {
-                throw new Error(data.error || 'Unknown error occurred');
-            }
-
-        } catch (error) {
-            this.showError(`Error loading expenses: ${error.message}`);
-            this.expenses = [];
-            this.updateTotalDisplay(0);
-            this.renderExpenses();
-        } finally {
-            this.hideLoading();
-        }
-    }
-
-    selectCategory(selectedButton) {
-        // Remove selected from all category buttons (form section)
-        this.categoryButtons.forEach(button => {
-            button.removeAttribute('data-selected');
-        });
-        
-        // Add selected to clicked button
-        selectedButton.setAttribute('data-selected', '');
-        
-        // Update hidden input value
-        this.selectedCategoryInput.value = selectedButton.getAttribute('data-category');
-    }
-
-    selectFilterCategory(selectedButton) {
-        // Remove selected from all filter buttons
-        this.pillButtons.forEach(button => {
-            button.removeAttribute('data-selected');
-        });
-        
-        // Add selected to clicked button
-        selectedButton.setAttribute('data-selected', '');
-        
-        // Update selected category state for filtering
-        this.filterCategory = selectedButton.getAttribute('data-category');
-        
-        // Apply filters immediately
-        this.applyFilters();
-    }
-
-    applyFilters() {
-        // Build URL with filters
-        const params = new URLSearchParams();
-        
-        if (this.filterCategory && this.filterCategory !== '') {
-            params.append('category', this.filterCategory);
-        }
-        
-        if (this.filterDate && this.filterDate !== '') {
-            params.append('date', this.filterDate);
-        }
-
-        const url = params.toString() ? `${this.apiUrl}/get_expenses.php?${params.toString()}` : `${this.apiUrl}/get_expenses.php`;
-        
-        // Load filtered expenses immediately
-        this.loadExpensesFromUrl(url);
-    }
-
-    async loadExpensesFromUrl(url) {
-        try {
-            this.showLoading();
-            this.hideMessage('error');
-            this.hideMessage('success');
 
             const response = await fetch(url);
             const data = await response.json();
@@ -227,6 +205,13 @@ class ExpenseTracker {
             message: this.messageInput.value.trim()
         };
 
+        // Add user info
+        if (this.currentUser) {
+            expenseData.user_id = this.currentUser.id;
+        } else {
+            expenseData.user_id = 'guest';
+        }
+
         try {
             this.showLoading();
             this.hideMessage('error');
@@ -235,7 +220,7 @@ class ExpenseTracker {
             const response = await fetch(`${this.apiUrl}/add_expense.php`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(expenseData)
             });
@@ -247,10 +232,10 @@ class ExpenseTracker {
             }
 
             if (data.success) {
-                this.showSuccess('Expense added successfully!');
+                this.showSuccess('Expense added successfully');
                 this.expenseForm.reset();
                 this.setDefaultDate();
-                await this.loadExpenses();
+                this.loadExpenses();
             } else {
                 throw new Error(data.error || 'Unknown error occurred');
             }
@@ -262,7 +247,7 @@ class ExpenseTracker {
         }
     }
 
-    async deleteExpense(expenseId) {
+    async deleteExpense(id) {
         if (!confirm('Are you sure you want to delete this expense?')) {
             return;
         }
@@ -272,12 +257,17 @@ class ExpenseTracker {
             this.hideMessage('error');
             this.hideMessage('success');
 
-            const response = await fetch(`${this.apiUrl}/delete_expense.php`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ id: expenseId })
+            const params = new URLSearchParams();
+            params.append('id', id);
+            
+            if (this.currentUser) {
+                params.append('user_id', this.currentUser.id);
+            } else {
+                params.append('user_id', 'guest');
+            }
+
+            const response = await fetch(`${this.apiUrl}/delete_expense.php?${params.toString()}`, {
+                method: 'DELETE'
             });
 
             const data = await response.json();
@@ -287,8 +277,8 @@ class ExpenseTracker {
             }
 
             if (data.success) {
-                this.showSuccess('Expense deleted successfully!');
-                await this.loadExpenses();
+                this.showSuccess('Expense deleted successfully');
+                this.loadExpenses();
             } else {
                 throw new Error(data.error || 'Unknown error occurred');
             }
@@ -298,6 +288,112 @@ class ExpenseTracker {
         } finally {
             this.hideLoading();
         }
+    }
+
+    selectCategory(selectedButton) {
+        // Remove selected from all category buttons (form section)
+        this.categoryButtons.forEach(button => {
+            button.removeAttribute('data-selected');
+        });
+        
+        // Add selected to clicked button
+        selectedButton.setAttribute('data-selected', '');
+        
+        // Update hidden input value
+        this.selectedCategoryInput.value = selectedButton.getAttribute('data-category');
+    }
+
+    selectFilterCategory(selectedButton) {
+        // Remove selected from all filter buttons
+        this.pillButtons.forEach(button => {
+            button.removeAttribute('data-selected');
+        });
+        
+        // Add selected to clicked button
+        selectedButton.setAttribute('data-selected', '');
+        
+        // Update selected category state for filtering
+        this.filterCategory = selectedButton.getAttribute('data-category');
+        
+        // Apply filters immediately
+        this.applyFilters();
+    }
+
+    applyFilters() {
+        // Load filtered expenses immediately
+        this.loadExpenses();
+    }
+
+    async handleLogin() {
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
+        
+        this.hideMessages();
+        
+        try {
+            const response = await fetch('login.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.setCurrentUser(data.user);
+                this.showSuccess(data.message);
+                hideLoginModal();
+                this.loadExpenses();
+            } else {
+                this.showError(data.error);
+            }
+        } catch (error) {
+            this.showError('Login failed: ' + error.message);
+        }
+    }
+
+    async handleRegister() {
+        const username = document.getElementById('registerUsername').value.trim();
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        
+        this.hideMessages();
+        
+        if (password !== confirmPassword) {
+            this.showError('Passwords do not match');
+            return;
+        }
+        
+        try {
+            const response = await fetch('register.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.setCurrentUser(data.user);
+                this.showSuccess(data.message);
+                hideRegisterModal();
+                this.loadExpenses();
+            } else {
+                this.showError(data.error);
+            }
+        } catch (error) {
+            this.showError('Registration failed: ' + error.message);
+        }
+    }
+
+    logout() {
+        this.setCurrentUser(null);
+        this.showSuccess('Logged out successfully');
+        this.loadExpenses();
     }
 
     renderExpenses() {
@@ -364,21 +460,11 @@ class ExpenseTracker {
     showError(message) {
         this.errorMessage.textContent = message;
         this.errorMessage.style.display = 'block';
-        
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-            this.hideMessage('error');
-        }, 5000);
     }
 
     showSuccess(message) {
         this.successMessage.textContent = message;
         this.successMessage.style.display = 'block';
-        
-        // Auto-hide after 3 seconds
-        setTimeout(() => {
-            this.hideMessage('success');
-        }, 3000);
     }
 
     hideMessage(type) {
@@ -388,33 +474,12 @@ class ExpenseTracker {
             this.successMessage.style.display = 'none';
         }
     }
+
+    hideMessages() {
+        this.hideMessage('error');
+        this.hideMessage('success');
+    }
 }
 
-// Initialize the application when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    window.expenseTracker = new ExpenseTracker();
-});
-
-// Add some CSS for category badges
-const categoryStyles = `
-    .category-badge {
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-size: 12px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .category-both { background: #e3f2fd; color: #1976d2; }
-    .category-domestic { background: #f3e5f5; color: #7b1fa2; }
-    .category-akib { background: #e8f5e8; color: #388e3c; }
-    .category-saniya { background: #fff3e0; color: #f57c00; }
-    .category-neha { background: #fce4ec; color: #c2185b; }
-    .category-family { background: #e0f2f1; color: #00695c; }
-`;
-
-// Inject category styles
-const styleSheet = document.createElement('style');
-styleSheet.textContent = categoryStyles;
-document.head.appendChild(styleSheet);
+// Initialize the application
+const expenseTracker = new ExpenseTracker();
