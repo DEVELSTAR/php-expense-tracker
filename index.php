@@ -1,6 +1,5 @@
 <?php
 session_start();
-require_once 'api/db.php';
 
 // Check if user is logged in
 $is_logged_in = isset($_SESSION['user_id']) && !$_SESSION['is_guest'];
@@ -39,9 +38,9 @@ if ($is_logged_in) {
                     <button class="btn btn-secondary" onclick="window.location.href='logout.php'">Logout</button>
                 <?php elseif ($is_guest): ?>
                     <span class="auth-info">Guest Mode (Public Expenses)</span>
-                    <button class="btn btn-primary" onclick="showLoginModal()">Login</button>
+                    <button class="btn btn-primary" onclick="window.location.href='login.php'">Login</button>
                 <?php else: ?>
-                    <button class="btn btn-primary" onclick="showLoginModal()">Login</button>
+                    <button class="btn btn-primary" onclick="window.location.href='login.php'">Login</button>
                     <button class="btn btn-secondary" onclick="window.location.href='register.php'">Register</button>
                 <?php endif; ?>
             </div>
@@ -145,49 +144,6 @@ if ($is_logged_in) {
         </section>
     </div>
 
-    <!-- Login Modal -->
-    <div id="loginModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Login</h3>
-                <span class="close" onclick="hideLoginModal()">&times;</span>
-            </div>
-            <div class="modal-body">
-                <form id="loginForm">
-                    <div class="form-group">
-                        <label for="loginUsername">Username:</label>
-                        <input type="text" id="loginUsername" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="loginPassword">Password:</label>
-                        <input type="password" id="loginPassword" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Login</button>
-                    <p class="auth-note">
-                        <small>Guest login: username "guest" with any password</small>
-                    </p>
-                </form>
-            </div>
-        </div>
-    </div>
-
     <script src="assets/js/app.js"></script>
-    <script>
-        function showLoginModal() {
-            document.getElementById('loginModal').style.display = 'block';
-        }
-
-        function hideLoginModal() {
-            document.getElementById('loginModal').style.display = 'none';
-        }
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('loginModal');
-            if (event.target === modal) {
-                hideLoginModal();
-            }
-        }
-    </script>
 </body>
 </html>
