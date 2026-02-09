@@ -26,7 +26,7 @@ if ($is_logged_in) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Akibworks Expense Tracker</title>
     <link rel="icon" type="image/png" href="images/spending.png">
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=<?php echo time(); ?>">
 </head>
 <body>
     <!-- Navigation -->
@@ -165,7 +165,7 @@ if ($is_logged_in) {
         </section>
     </div>
 
-    <script src="assets/js/app.js"></script>
+    <script src="assets/js/app.js?v=<?php echo time(); ?>"></script>
     <script>
         // Hamburger Menu Toggle
         const navToggle = document.getElementById('navToggle');
