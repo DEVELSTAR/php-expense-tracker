@@ -2,8 +2,8 @@
 AddType application/x-httpd-php .php
 AddHandler application/x-httpd-php .php
 
-# Set index.php as default (prioritize PHP)
-DirectoryIndex index.php
+# Set app.php as default (bypass server cache)
+DirectoryIndex app.php
 
 # Enable PHP error reporting
 php_flag display_errors on
