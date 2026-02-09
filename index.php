@@ -42,7 +42,7 @@ if ($is_logged_in) {
                     <button class="btn btn-primary" onclick="showLoginModal()">Login</button>
                 <?php else: ?>
                     <button class="btn btn-primary" onclick="showLoginModal()">Login</button>
-                    <button class="btn btn-secondary" onclick="window.location.href='register.html'">Register</button>
+                    <button class="btn btn-secondary" onclick="window.location.href='register.php'">Register</button>
                 <?php endif; ?>
             </div>
         </header>
