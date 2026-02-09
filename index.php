@@ -24,11 +24,12 @@ if ($is_logged_in) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akibworks Expense Tracker</title>
+    <title>Akibworks Expense Tracker - <?php echo date('H:i:s'); ?></title>
     <link rel="icon" type="image/png" href="images/spending.png">
     <link rel="stylesheet" href="assets/css/style.css?v=<?php echo time(); ?>">
 </head>
 <body>
+    <!-- Debug: PHP Time: <?php echo date('Y-m-d H:i:s'); ?> -->
     <!-- Navigation -->
     <nav class="navbar">
         <div class="nav-container">
