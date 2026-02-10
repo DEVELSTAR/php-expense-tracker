@@ -1,75 +1,55 @@
 <?php
+require_once 'db.php';
 session_start();
 
 // Get expense ID
 $expenseId = $_GET['id'] ?? null;
 
 if (!$expenseId) {
-    header('Content-Type: application/json');
     echo json_encode(['success' => false, 'error' => 'Expense ID required']);
     exit;
 }
 
-// Simple file-based storage
-$dataFile = __DIR__ . '/expenses.json';
+// Get user info
+$userId = $_SESSION['user_id'] ?? null;
+$isGuest = $_SESSION['is_guest'] ?? false;
 
-// Read existing expenses
-$expenses = [];
-if (file_exists($dataFile)) {
-    $json = file_get_contents($dataFile);
-    $expenses = json_decode($json, true) ?: [];
-}
-
-// Find and delete expense
-$found = false;
-$updatedExpenses = [];
-
-foreach ($expenses as $expense) {
-    if ($expense['id'] == $expenseId) {
-        // Check if user can delete this expense
-        $userId = $_SESSION['user_id'] ?? null;
-        $isGuest = $_SESSION['is_guest'] ?? false;
-        
-        if ($isGuest) {
-            // Guest can delete guest expenses
-            if ($expense['user_id'] !== null && $expense['user_id'] !== 'guest') {
-                $updatedExpenses[] = $expense; // Keep it, can't delete
-                continue;
-            }
-        } elseif ($userId) {
-            // Logged-in user can delete their own expenses
-            if ($expense['user_id'] != $userId) {
-                $updatedExpenses[] = $expense; // Keep it, can't delete
-                continue;
-            }
-        } else {
-            // Not logged in, can only delete guest expenses
-            if ($expense['user_id'] !== null && $expense['user_id'] !== 'guest') {
-                $updatedExpenses[] = $expense; // Keep it, can't delete
-                continue;
-            }
-        }
-        
-        $found = true; // Don't add this expense to updated array (delete it)
-    } else {
-        $updatedExpenses[] = $expense; // Keep this expense
-    }
-}
-
-if ($found) {
-    // Save updated expenses
-    file_put_contents($dataFile, json_encode($updatedExpenses, JSON_PRETTY_PRINT));
+try {
+    // First get the expense to check ownership
+    $stmt = $conn->prepare("SELECT id, user_id FROM expenses WHERE id = ?");
+    $stmt->execute([$expenseId]);
+    $expense = $stmt->fetch();
     
-    header('Content-Type: application/json');
+    if (!$expense) {
+        echo json_encode(['success' => false, 'error' => 'Expense not found']);
+        exit;
+    }
+    
+    // Check if user can delete this expense
+    if ($isGuest || !$userId) {
+        // Guests can delete guest expenses (user_id IS NULL)
+        if ($expense['user_id'] !== null) {
+            echo json_encode(['success' => false, 'error' => 'You can only delete your own expenses']);
+            exit;
+        }
+    } else {
+        // Logged-in users can delete their own expenses
+        if ($expense['user_id'] != $userId) {
+            echo json_encode(['success' => false, 'error' => 'You can only delete your own expenses']);
+            exit;
+        }
+    }
+    
+    // Delete the expense
+    $deleteStmt = $conn->prepare("DELETE FROM expenses WHERE id = ?");
+    $deleteStmt->execute([$expenseId]);
+    
     echo json_encode([
         'success' => true,
         'message' => 'Expense deleted successfully'
     ]);
-} else {
-    header('Content-Type: application/json');
-    echo json_encode([
-        'success' => false,
-        'error' => 'Expense not found or cannot be deleted'
-    ]);
+    
+} catch(PDOException $e) {
+    echo json_encode(['success' => false, 'error' => 'Database error: ' . $e->getMessage()]);
 }
 ?>

@@ -88,15 +88,14 @@ if ($is_logged_in) {
                 </div>
                 
                 <div class="form-group">
-                    <label>Category:</label>
-                    <div class="button-group">
-                        <button type="button" class="category-btn" data-category="Both">Both</button>
-                        <button type="button" class="category-btn" data-category="Domestic" data-selected>Domestic</button>
-                        <button type="button" class="category-btn" data-category="Akib">Akib</button>
-                        <button type="button" class="category-btn" data-category="Saniya">Saniya</button>
-                        <button type="button" class="category-btn" data-category="Neha">Neha</button>
-                        <button type="button" class="category-btn" data-category="Family">Family</button>
-                        <input type="hidden" id="selectedCategory" name="category" value="Domestic">
+                    <label for="expenseCategory">Category:</label>
+                    <div class="category-input-group">
+                        <select id="expenseCategory" required>
+                            <option value="">Select a category</option>
+                        </select>
+                        <?php if ($is_logged_in): ?>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="showAddCategoryModal()">+ Add</button>
+                        <?php endif; ?>
                     </div>
                 </div>
                 
@@ -113,14 +112,8 @@ if ($is_logged_in) {
             
             <div class="filter-group">
                 <label>Filter by Category:</label>
-                <div class="pill-group">
+                <div class="pill-group" id="categoryFilterPills">
                     <button type="button" class="pill-btn" data-category="">All</button>
-                    <button type="button" class="pill-btn" data-category="Both">Both</button>
-                    <button type="button" class="pill-btn" data-category="Domestic">Domestic</button>
-                    <button type="button" class="pill-btn" data-category="Akib">Akib</button>
-                    <button type="button" class="pill-btn" data-category="Saniya">Saniya</button>
-                    <button type="button" class="pill-btn" data-category="Neha">Neha</button>
-                    <button type="button" class="pill-btn" data-category="Family">Family</button>
                 </div>
             </div>
             
@@ -166,6 +159,28 @@ if ($is_logged_in) {
         </section>
     </div>
 
+    <!-- Category Management Modal -->
+    <div id="categoryModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Manage Categories</h3>
+                <button class="modal-close" onclick="hideCategoryModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="category-list" id="categoryList">
+                    <!-- Categories will be populated here -->
+                </div>
+                <div class="add-category-form">
+                    <h4>Add New Category</h4>
+                    <div class="form-group">
+                        <input type="text" id="newCategoryName" placeholder="Enter category name" maxlength="50">
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="addCategory()">Add Category</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="assets/js/app.js?v=<?php echo time(); ?>"></script>
     <script>
         // Hamburger Menu Toggle
@@ -182,6 +197,36 @@ if ($is_logged_in) {
             if (!navToggle.contains(event.target) && !navMenu.contains(event.target)) {
                 navMenu.classList.remove('active');
                 navToggle.classList.remove('active');
+            }
+        });
+
+        // Category Modal Functions
+        function showAddCategoryModal() {
+            document.getElementById('categoryModal').style.display = 'block';
+            expenseTracker.loadCategories();
+        }
+
+        function hideCategoryModal() {
+            document.getElementById('categoryModal').style.display = 'none';
+        }
+
+        function addCategory() {
+            const nameInput = document.getElementById('newCategoryName');
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                expenseTracker.showError('Please enter a category name');
+                return;
+            }
+            
+            expenseTracker.addCategory(name);
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('categoryModal');
+            if (event.target === modal) {
+                hideCategoryModal();
             }
         });
     </script>

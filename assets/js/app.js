@@ -3,12 +3,14 @@ class ExpenseTracker {
     constructor() {
         this.apiUrl = 'api';
         this.expenses = [];
+        this.categories = [];
         this.currentFilter = '';
         this.currentUser = null;
         
         this.initializeElements();
         this.bindEvents();
         this.setDefaultDate();
+        this.loadCategories();
         this.loadExpenses();
     }
 
@@ -18,12 +20,11 @@ class ExpenseTracker {
         this.expenseDateInput = document.getElementById('expenseDate');
         this.totalAmountInput = document.getElementById('expenseAmount');
         this.messageInput = document.getElementById('expenseMessage');
-        this.categoryButtons = document.querySelectorAll('.category-btn');
-        this.selectedCategoryInput = document.getElementById('selectedCategory');
+        this.categorySelect = document.getElementById('expenseCategory');
         
         // Filter elements
         this.dateFilterInput = document.getElementById('dateFilter');
-        this.pillButtons = document.querySelectorAll('.pill-btn');
+        this.categoryFilterPills = document.getElementById('categoryFilterPills');
         
         // Filter state
         this.filterCategory = '';
@@ -45,20 +46,6 @@ class ExpenseTracker {
             this.addExpense();
         });
 
-        // Category button clicks (form section)
-        this.categoryButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                this.selectCategory(button);
-            });
-        });
-
-        // Category pill button clicks (filter section)
-        this.pillButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                this.selectFilterCategory(button);
-            });
-        });
-
         // Date filter change
         this.dateFilterInput.addEventListener('change', () => {
             this.filterDate = this.dateFilterInput.value;
@@ -78,23 +65,160 @@ class ExpenseTracker {
         this.filterCategory = '';
         this.filterDate = null;
         
-        // Reset all category buttons (form section)
-        this.categoryButtons.forEach(button => {
-            button.removeAttribute('data-selected');
-        });
-        
-        // Select "Domestic" category button by default (form section)
-        const domesticButton = document.querySelector('.category-btn[data-category="Domestic"]');
-        if (domesticButton) {
-            domesticButton.setAttribute('data-selected', '');
-            this.selectedCategoryInput.value = 'Domestic';
-        }
-        
         // Select "All" pill button by default (filter section)
         const allFilterButton = document.querySelector('.pill-btn[data-category=""]');
         if (allFilterButton) {
             allFilterButton.setAttribute('data-selected', '');
         }
+    }
+
+    async loadCategories() {
+        try {
+            const response = await fetch('/api/get_categories.php');
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to load categories');
+            }
+
+            if (data.success) {
+                this.categories = data.categories;
+                this.populateCategorySelect();
+                this.populateCategoryFilterPills();
+                this.renderCategoryList();
+            } else {
+                throw new Error(data.error || 'Unknown error occurred');
+            }
+
+        } catch (error) {
+            this.showError(`Error loading categories: ${error.message}`);
+        }
+    }
+
+    populateCategorySelect() {
+        this.categorySelect.innerHTML = '<option value="">Select a category</option>';
+        
+        this.categories.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.name;
+            option.textContent = category.name;
+            this.categorySelect.appendChild(option);
+        });
+    }
+
+    populateCategoryFilterPills() {
+        this.categoryFilterPills.innerHTML = '<button type="button" class="pill-btn" data-category="">All</button>';
+        
+        this.categories.forEach(category => {
+            const pill = document.createElement('button');
+            pill.type = 'button';
+            pill.className = 'pill-btn';
+            pill.setAttribute('data-category', category.name);
+            pill.textContent = category.name;
+            
+            pill.addEventListener('click', () => {
+                this.selectFilterCategory(pill);
+            });
+            
+            this.categoryFilterPills.appendChild(pill);
+        });
+    }
+
+    async addCategory(name) {
+        try {
+            this.showLoading();
+            this.hideMessage('error');
+            this.hideMessage('success');
+
+            const response = await fetch('/api/create_category.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: name })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to add category');
+            }
+
+            if (data.success) {
+                this.showSuccess('Category added successfully');
+                document.getElementById('newCategoryName').value = '';
+                this.loadCategories(); // Reload categories to update UI
+            } else {
+                throw new Error(data.error || 'Unknown error occurred');
+            }
+
+        } catch (error) {
+            this.showError(`Error adding category: ${error.message}`);
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    async deleteCategory(categoryId) {
+        if (!confirm('Are you sure you want to delete this category?')) {
+            return;
+        }
+
+        try {
+            this.showLoading();
+            this.hideMessage('error');
+            this.hideMessage('success');
+
+            const response = await fetch('/api/delete_category.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: categoryId })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to delete category');
+            }
+
+            if (data.success) {
+                this.showSuccess('Category deleted successfully');
+                this.loadCategories(); // Reload categories to update UI
+            } else {
+                throw new Error(data.error || 'Unknown error occurred');
+            }
+
+        } catch (error) {
+            this.showError(`Error deleting category: ${error.message}`);
+        } finally {
+            this.hideLoading();
+        }
+    }
+
+    renderCategoryList() {
+        const categoryList = document.getElementById('categoryList');
+        if (!categoryList) return;
+
+        categoryList.innerHTML = '';
+
+        this.categories.forEach(category => {
+            const categoryItem = document.createElement('div');
+            categoryItem.className = 'category-item';
+            
+            const isDefault = category.user_id === null;
+            
+            categoryItem.innerHTML = `
+                <div class="category-info">
+                    <span class="category-name">${category.name}</span>
+                    ${isDefault ? '<span class="category-badge">Default</span>' : '<span class="category-badge">Custom</span>'}
+                </div>
+                ${!isDefault ? `<button class="btn btn-danger btn-sm" onclick="expenseTracker.deleteCategory(${category.id})">Delete</button>` : ''}
+            `;
+            
+            categoryList.appendChild(categoryItem);
+        });
     }
 
     async loadExpenses() {
@@ -142,7 +266,7 @@ class ExpenseTracker {
     }
 
     async addExpense() {
-        const selectedCategory = this.selectedCategoryInput.value;
+        const selectedCategory = this.categorySelect.value;
         
         if (!selectedCategory) {
             this.showError('Please select a category');
@@ -225,22 +349,10 @@ class ExpenseTracker {
         }
     }
 
-    selectCategory(selectedButton) {
-        // Remove selected from all category buttons (form section)
-        this.categoryButtons.forEach(button => {
-            button.removeAttribute('data-selected');
-        });
-        
-        // Add selected to clicked button
-        selectedButton.setAttribute('data-selected', '');
-        
-        // Update hidden input value
-        this.selectedCategoryInput.value = selectedButton.getAttribute('data-category');
-    }
-
     selectFilterCategory(selectedButton) {
         // Remove selected from all filter buttons
-        this.pillButtons.forEach(button => {
+        const allPills = this.categoryFilterPills.querySelectorAll('.pill-btn');
+        allPills.forEach(button => {
             button.removeAttribute('data-selected');
         });
         
