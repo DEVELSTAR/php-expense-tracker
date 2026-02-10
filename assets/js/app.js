@@ -20,7 +20,8 @@ class ExpenseTracker {
         this.expenseDateInput = document.getElementById('expenseDate');
         this.totalAmountInput = document.getElementById('expenseAmount');
         this.messageInput = document.getElementById('expenseMessage');
-        this.categorySelect = document.getElementById('expenseCategory');
+        this.categoryButtons = document.getElementById('categoryButtons');
+        this.selectedCategoryInput = document.getElementById('selectedCategory');
         
         // Filter elements
         this.dateFilterInput = document.getElementById('dateFilter');
@@ -66,10 +67,7 @@ class ExpenseTracker {
         this.filterDate = null;
         
         // Select "All" pill button by default (filter section)
-        const allFilterButton = document.querySelector('.pill-btn[data-category=""]');
-        if (allFilterButton) {
-            allFilterButton.setAttribute('data-selected', '');
-        }
+        // This will be handled by populateCategoryFilterPills() which now selects "All" by default
     }
 
     async loadCategories() {
@@ -83,7 +81,7 @@ class ExpenseTracker {
 
             if (data.success) {
                 this.categories = data.categories;
-                this.populateCategorySelect();
+                this.populateCategoryButtons();
                 this.populateCategoryFilterPills();
                 this.renderCategoryList();
             } else {
@@ -95,20 +93,50 @@ class ExpenseTracker {
         }
     }
 
-    populateCategorySelect() {
-        this.categorySelect.innerHTML = '<option value="">Select a category</option>';
+    populateCategoryButtons() {
+        this.categoryButtons.innerHTML = '';
         
-        this.categories.forEach(category => {
-            const option = document.createElement('option');
-            option.value = category.name;
-            option.textContent = category.name;
-            this.categorySelect.appendChild(option);
+        this.categories.forEach((category, index) => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'category-btn';
+            button.setAttribute('data-category', category.name);
+            button.textContent = category.name;
+            
+            // Select first category by default
+            if (index === 0) {
+                button.setAttribute('data-selected', '');
+                this.selectedCategoryInput.value = category.name;
+            }
+            
+            button.addEventListener('click', () => {
+                this.selectCategory(button);
+            });
+            
+            this.categoryButtons.appendChild(button);
         });
     }
 
     populateCategoryFilterPills() {
-        this.categoryFilterPills.innerHTML = '<button type="button" class="pill-btn" data-category="">All</button>';
+        this.categoryFilterPills.innerHTML = '';
         
+        // Create "All" button
+        const allPill = document.createElement('button');
+        allPill.type = 'button';
+        allPill.className = 'pill-btn';
+        allPill.setAttribute('data-category', '');
+        allPill.textContent = 'All';
+        
+        // Select "All" by default
+        allPill.setAttribute('data-selected', '');
+        
+        allPill.addEventListener('click', () => {
+            this.selectFilterCategory(allPill);
+        });
+        
+        this.categoryFilterPills.appendChild(allPill);
+        
+        // Create category pills
         this.categories.forEach(category => {
             const pill = document.createElement('button');
             pill.type = 'button';
@@ -266,7 +294,7 @@ class ExpenseTracker {
     }
 
     async addExpense() {
-        const selectedCategory = this.categorySelect.value;
+        const selectedCategory = this.selectedCategoryInput.value;
         
         if (!selectedCategory) {
             this.showError('Please select a category');
@@ -303,6 +331,11 @@ class ExpenseTracker {
                 this.showSuccess('Expense added successfully');
                 this.expenseForm.reset();
                 this.setDefaultDate();
+                // Reset category selection to first category
+                const firstCategoryBtn = this.categoryButtons.querySelector('.category-btn');
+                if (firstCategoryBtn) {
+                    this.selectCategory(firstCategoryBtn);
+                }
                 this.loadExpenses();
             } else {
                 throw new Error(data.error || 'Unknown error occurred');
@@ -347,6 +380,20 @@ class ExpenseTracker {
         } finally {
             this.hideLoading();
         }
+    }
+
+    selectCategory(selectedButton) {
+        // Remove selected from all category buttons (form section)
+        const allButtons = this.categoryButtons.querySelectorAll('.category-btn');
+        allButtons.forEach(button => {
+            button.removeAttribute('data-selected');
+        });
+        
+        // Add selected to clicked button
+        selectedButton.setAttribute('data-selected', '');
+        
+        // Update hidden input value
+        this.selectedCategoryInput.value = selectedButton.getAttribute('data-category');
     }
 
     selectFilterCategory(selectedButton) {

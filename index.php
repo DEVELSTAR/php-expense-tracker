@@ -89,14 +89,13 @@ if ($is_logged_in) {
                 
                 <div class="form-group">
                     <label for="expenseCategory">Category:</label>
-                    <div class="category-input-group">
-                        <select id="expenseCategory" required>
-                            <option value="">Select a category</option>
-                        </select>
-                        <?php if ($is_logged_in): ?>
-                        <button type="button" class="btn btn-secondary btn-sm" onclick="showAddCategoryModal()">+ Add</button>
-                        <?php endif; ?>
+                    <div class="button-group" id="categoryButtons">
+                        <!-- Category buttons will be populated here -->
                     </div>
+                    <?php if ($is_logged_in): ?>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="showAddCategoryModal()">+ Add Category</button>
+                    <?php endif; ?>
+                    <input type="hidden" id="selectedCategory" name="category" value="">
                 </div>
                 
                 <button type="submit" class="btn btn-primary">Add Expense</button>
