@@ -107,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="password-input-group">
                         <input type="password" id="registerPassword" required minlength="6">
                         <button type="button" class="password-toggle" onclick="togglePassword('registerPassword', this)">
-                            👁️ Show
+                            👁️
                         </button>
                     </div>
                     <small>At least 6 characters</small>
@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="password-input-group">
                         <input type="password" id="confirmPassword" required minlength="6">
                         <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword', this)">
-                            👁️ Show
+                            👁️
                         </button>
                     </div>
                 </div>
@@ -146,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const isPassword = input.type === 'password';
             
             input.type = isPassword ? 'text' : 'password';
-            toggleButton.textContent = isPassword ? '🙈 Hide' : '👁️ Show';
+            toggleButton.textContent = isPassword ? '🙈' : '👁️';
         }
 
         document.getElementById('registerForm').addEventListener('submit', async function(e) {

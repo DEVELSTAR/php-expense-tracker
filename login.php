@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="password-input-group">
                         <input type="password" id="loginPassword" required>
                         <button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)">
-                            👁️ Show
+                            👁️
                         </button>
                     </div>
                 </div>
@@ -117,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const isPassword = input.type === 'password';
             
             input.type = isPassword ? 'text' : 'password';
-            toggleButton.textContent = isPassword ? '🙈 Hide' : '👁️ Show';
+            toggleButton.textContent = isPassword ? '🙈' : '👁️';
         }
 
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
