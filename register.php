@@ -105,10 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label for="registerPassword">Password:</label>
                     <div class="password-input-group">
-                        <input type="password" id="registerPassword" required minlength="6">
-                        <button type="button" class="password-toggle" onclick="togglePassword('registerPassword', this)">
-                            👁️
-                        </button>
+                        <input type="password" id="registerPassword" required minlength="6" onclick="togglePassword('registerPassword')">
                     </div>
                     <small>At least 6 characters</small>
                 </div>
@@ -116,10 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label for="confirmPassword">Confirm Password:</label>
                     <div class="password-input-group">
-                        <input type="password" id="confirmPassword" required minlength="6">
-                        <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword', this)">
-                            👁️
-                        </button>
+                        <input type="password" id="confirmPassword" required minlength="6" onclick="togglePassword('confirmPassword')">
                     </div>
                 </div>
                 
@@ -141,12 +135,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <script>
         // Password toggle function
-        function togglePassword(inputId, toggleButton) {
+        function togglePassword(inputId) {
             const input = document.getElementById(inputId);
             const isPassword = input.type === 'password';
             
             input.type = isPassword ? 'text' : 'password';
-            toggleButton.textContent = isPassword ? '🙈' : '👁️';
+            
+            // Toggle the CSS class for background icon
+            if (isPassword) {
+                input.classList.add('show-password');
+            } else {
+                input.classList.remove('show-password');
+            }
         }
 
         document.getElementById('registerForm').addEventListener('submit', async function(e) {

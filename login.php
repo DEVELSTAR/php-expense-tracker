@@ -83,10 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label for="loginPassword">Password:</label>
                     <div class="password-input-group">
-                        <input type="password" id="loginPassword" required>
-                        <button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)">
-                            👁️
-                        </button>
+                        <input type="password" id="loginPassword" required onclick="togglePassword('loginPassword')">
                     </div>
                 </div>
                 
@@ -112,12 +109,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <script>
         // Password toggle function
-        function togglePassword(inputId, toggleButton) {
+        function togglePassword(inputId) {
             const input = document.getElementById(inputId);
             const isPassword = input.type === 'password';
             
             input.type = isPassword ? 'text' : 'password';
-            toggleButton.textContent = isPassword ? '🙈' : '👁️';
+            
+            // Toggle the CSS class for background icon
+            if (isPassword) {
+                input.classList.add('show-password');
+            } else {
+                input.classList.remove('show-password');
+            }
         }
 
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
