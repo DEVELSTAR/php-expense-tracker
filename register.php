@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label for="registerPassword">Password:</label>
                     <div class="password-input-group">
-                        <input type="password" id="registerPassword" required minlength="6" onclick="togglePassword('registerPassword')">
+                        <input type="password" id="registerPassword" required minlength="6" onclick="handlePasswordClick(event, 'registerPassword')">
                     </div>
                     <small>At least 6 characters</small>
                 </div>
@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label for="confirmPassword">Confirm Password:</label>
                     <div class="password-input-group">
-                        <input type="password" id="confirmPassword" required minlength="6" onclick="togglePassword('confirmPassword')">
+                        <input type="password" id="confirmPassword" required minlength="6" onclick="handlePasswordClick(event, 'confirmPassword')">
                     </div>
                 </div>
                 
@@ -135,13 +135,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <script>
         // Password toggle function
+        function handlePasswordClick(event, inputId) {
+            const input = event.target;
+            const rect = input.getBoundingClientRect();
+            const iconAreaStart = rect.width - 40; // Icon area starts 40px from the right
+            
+            // Check if click is in the icon area (right 40px)
+            if (event.clientX - rect.left >= iconAreaStart) {
+                togglePassword(inputId);
+            }
+        }
+        
         function togglePassword(inputId) {
             const input = document.getElementById(inputId);
             const isPassword = input.type === 'password';
             
             input.type = isPassword ? 'text' : 'password';
             
-            // Toggle the CSS class for background icon
+            // Toggle CSS class for background icon
             if (isPassword) {
                 input.classList.add('show-password');
             } else {

@@ -813,7 +813,6 @@ tbody tr:hover {
     background-repeat: no-repeat;
     background-position: right 10px center;
     background-size: 20px;
-    cursor: pointer;
 }
 
 .password-input-group input.show-password {

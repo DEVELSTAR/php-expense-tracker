@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="form-group">
                     <label for="loginPassword">Password:</label>
                     <div class="password-input-group">
-                        <input type="password" id="loginPassword" required onclick="togglePassword('loginPassword')">
+                        <input type="password" id="loginPassword" required onclick="handlePasswordClick(event, 'loginPassword')">
                     </div>
                 </div>
                 
@@ -109,13 +109,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <script>
         // Password toggle function
+        function handlePasswordClick(event, inputId) {
+            const input = event.target;
+            const rect = input.getBoundingClientRect();
+            const iconAreaStart = rect.width - 40; // Icon area starts 40px from the right
+            
+            // Check if click is in the icon area (right 40px)
+            if (event.clientX - rect.left >= iconAreaStart) {
+                togglePassword(inputId);
+            }
+        }
+        
         function togglePassword(inputId) {
             const input = document.getElementById(inputId);
             const isPassword = input.type === 'password';
             
             input.type = isPassword ? 'text' : 'password';
             
-            // Toggle the CSS class for background icon
+            // Toggle CSS class for background icon
             if (isPassword) {
                 input.classList.add('show-password');
             } else {
