@@ -545,6 +545,7 @@ tbody tr:hover {
     flex-wrap: wrap;
     gap: 8px;
     margin-top: 5px;
+    margin-bottom: 15px;
 }
 
 .category-btn {
