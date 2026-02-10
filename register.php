@@ -48,8 +48,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $users[$username] = $newUser;
     
-    // Save users
+    // Save users to JSON file (for backward compatibility)
     file_put_contents($usersFile, json_encode($users, JSON_PRETTY_PRINT));
+    
+    // Also save user to database for category management
+    try {
+        require_once 'api/db.php';
+        $dbStmt = $conn->prepare("INSERT INTO users (id, username, password_hash) VALUES (?, ?, ?)");
+        $dbStmt->execute([$newUser['id'], $username, $password]);
+    } catch(PDOException $e) {
+        // If database insert fails, continue with JSON-based registration
+        error_log("Database user insert failed: " . $e->getMessage());
+    }
     
     // Auto-login new user
     $_SESSION['user_id'] = $newUser['id'];
@@ -94,13 +104,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 <div class="form-group">
                     <label for="registerPassword">Password:</label>
-                    <input type="password" id="registerPassword" required minlength="6">
+                    <div class="password-input-group">
+                        <input type="password" id="registerPassword" required minlength="6">
+                        <button type="button" class="password-toggle" onclick="togglePassword('registerPassword', this)">
+                            👁️ Show
+                        </button>
+                    </div>
                     <small>At least 6 characters</small>
                 </div>
                 
                 <div class="form-group">
                     <label for="confirmPassword">Confirm Password:</label>
-                    <input type="password" id="confirmPassword" required minlength="6">
+                    <div class="password-input-group">
+                        <input type="password" id="confirmPassword" required minlength="6">
+                        <button type="button" class="password-toggle" onclick="togglePassword('confirmPassword', this)">
+                            👁️ Show
+                        </button>
+                    </div>
                 </div>
                 
                 <button type="submit" class="btn btn-primary">Register</button>
@@ -120,6 +140,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script>
+        // Password toggle function
+        function togglePassword(inputId, toggleButton) {
+            const input = document.getElementById(inputId);
+            const isPassword = input.type === 'password';
+            
+            input.type = isPassword ? 'text' : 'password';
+            toggleButton.textContent = isPassword ? '🙈 Hide' : '👁️ Show';
+        }
+
         document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             

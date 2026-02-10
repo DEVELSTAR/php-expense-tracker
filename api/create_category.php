@@ -27,6 +27,22 @@ if ($isGuest || !$userId) {
     exit;
 }
 
+// Verify user exists in database before creating category
+try {
+    $userCheckStmt = $conn->prepare("SELECT id FROM users WHERE id = ?");
+    $userCheckStmt->execute([$userId]);
+    
+    if (!$userCheckStmt->fetch()) {
+        // User doesn't exist in database, clear session and return error
+        session_destroy();
+        echo json_encode(['success' => false, 'error' => 'User session invalid. Please login again.']);
+        exit;
+    }
+} catch(PDOException $e) {
+    echo json_encode(['success' => false, 'error' => 'Database error checking user: ' . $e->getMessage()]);
+    exit;
+}
+
 try {
     // Check if category already exists for this user
     $checkStmt = $conn->prepare("SELECT id FROM categories WHERE name = ? AND user_id = ?");

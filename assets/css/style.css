@@ -798,3 +798,37 @@ tbody tr:hover {
 .modal-close:hover {
     opacity: 1;
 }
+
+/* Password Input Toggle */
+.password-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-group input {
+    width: 100%;
+    padding-right: 50px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    color: #666;
+    font-size: 14px;
+    user-select: none;
+    transition: color 0.3s ease;
+}
+
+.password-toggle:hover {
+    color: #667eea;
+}
+
+.password-toggle:focus {
+    outline: none;
+    color: #667eea;
+}
