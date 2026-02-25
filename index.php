@@ -24,9 +24,54 @@ if ($is_logged_in) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akibworks Expense Tracker - <?php echo date('H:i:s'); ?></title>
-    <link rel="icon" type="image/png" href="images/spending.png">
+    <title>Expense Tracker - Track Your Spending Efficiently | Akibworks</title>
+    <meta name="description" content="A simple, intuitive expense tracking application with guest mode and user authentication. Manage personal and family expenses with categories and filtering.">
+    <meta name="keywords" content="expense tracker, spending tracker, budget management, expense manager, financial tracking">
+    <meta name="author" content="Akibworks">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="canonical" href="https://expense.akibworks.in/">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="192x192" href="images/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+    <meta property="og:title" content="Expense Tracker - Manage Your Spending">
+    <meta property="og:description" content="Track expenses with ease using our free expense tracker app with guest and user modes.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://expense.akibworks.in/">
+    <meta property="og:image" content="https://expense.akibworks.in/images/favicon.png">
+    <meta property="og:site_name" content="Akibworks Expense Tracker">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Expense Tracker - Manage Your Spending">
+    <meta name="twitter:description" content="Track expenses with ease using our free expense tracker app.">
+    <meta name="twitter:image" content="https://expense.akibworks.in/images/favicon.png">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link rel="stylesheet" href="assets/css/style.css?v=<?php echo time(); ?>">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Akibworks Expense Tracker",
+      "description": "A simple, intuitive expense tracking application with guest mode and user authentication.",
+      "url": "https://expense.akibworks.in",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "Akibworks",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://expense.akibworks.in/images/favicon.png",
+          "width": "192",
+          "height": "192"
+        },
+        "url": "https://expense.akibworks.in"
+      }
+    }
+    </script>
 </head>
 <body>
     <!-- Debug: PHP Time: <?php echo date('Y-m-d H:i:s'); ?> -->

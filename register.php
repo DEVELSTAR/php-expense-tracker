@@ -82,8 +82,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Akibworks Expense Tracker</title>
-    <link rel="icon" type="image/png" href="images/spending.png">
+    <title>Register New Account | Akibworks Expense Tracker</title>
+    <meta name="description" content="Create a free account on Akibworks Expense Tracker and start managing your expenses securely.">
+    <meta name="keywords" content="expense tracker register, create account, sign up, expense management">
+    <meta name="author" content="Akibworks">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="canonical" href="https://expense.akibworks.in/register.php">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="192x192" href="images/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+    <meta property="og:title" content="Register - Expense Tracker">
+    <meta property="og:description" content="Create a free account and start tracking your expenses today.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://expense.akibworks.in/register.php">
+    <meta property="og:image" content="https://expense.akibworks.in/images/favicon.png">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>

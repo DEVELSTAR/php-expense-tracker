@@ -61,8 +61,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Akibworks Expense Tracker</title>
-    <link rel="icon" type="image/png" href="images/spending.png">
+    <title>Login to Your Expense Tracker Account | Akibworks</title>
+    <meta name="description" content="Login to your Akibworks Expense Tracker account to manage your personal expenses and budgets.">
+    <meta name="keywords" content="expense tracker login, account login, expense management">
+    <meta name="author" content="Akibworks">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="canonical" href="https://expense.akibworks.in/login.php">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="192x192" href="images/favicon.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+    <meta property="og:title" content="Login - Expense Tracker">
+    <meta property="og:description" content="Securely login to manage your personal expenses.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://expense.akibworks.in/login.php">
+    <meta property="og:image" content="https://expense.akibworks.in/images/favicon.png">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>

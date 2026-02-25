@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /users.json
+Disallow: /expenses.json
+
+Sitemap: https://expense.akibworks.in/sitemap.xml
